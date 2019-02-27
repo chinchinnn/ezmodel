@@ -7,10 +7,9 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
-testfxn <- function(x){
-  return(paste(x, "World"))
-}
+# library(shiny)
+source("global.R", local = T)
+importPkgs()
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
@@ -25,6 +24,10 @@ shinyServer(function(input, output) {
     hist(x, breaks = bins, col = 'darkgray', border = 'white')
     
   })
+  
+  output$overview <- renderText(
+    "<h1>Project Overview:</h1><br>User-customised Geographically Weighted Regression Model for HDB Resale Prices Data."
+  )
   
   output$test <- renderText(
     testfxn("Hello")
