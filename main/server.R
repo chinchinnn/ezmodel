@@ -8,6 +8,9 @@
 #
 
 library(shiny)
+testfxn <- function(x){
+  return(paste(x, "World"))
+}
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
@@ -22,5 +25,9 @@ shinyServer(function(input, output) {
     hist(x, breaks = bins, col = 'darkgray', border = 'white')
     
   })
+  
+  output$test <- renderText(
+    testfxn("Hello")
+  )
   
 })

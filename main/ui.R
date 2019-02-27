@@ -51,7 +51,7 @@ shinyUI(
                             selected = "A")
               ),
               mainPanel(
-                
+                textOutput(outputId = "test")
               )
             )
           )  
