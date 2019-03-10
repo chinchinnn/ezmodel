@@ -1,0 +1,34 @@
+# Metadata for Supermarkets
+---
+Identifier: '11bb7b0b-ea38-4981-9f1f-660ad88409aa'
+Name: 'supermarkets'
+Title: 'Supermarkets'
+Description: 'Locations of Supermarkets'
+Topics:
+  - 'Environment'
+Keywords:
+  - 'Supermarkets'
+Publisher:
+  Name: 'National Environment Agency'
+  Admin 1:
+    Name: 'Goh Jie Wei'
+    Department: 'NATIONAL ENVIRONMENT AGENCY'
+    Email: 'GOH_Jie_Wei@nea.gov.sg'
+Sources:
+  - 'National Environment Agency'
+License: 'https://data.gov.sg/open-data-licence'
+Frequency: 'Quarterly'
+Last Updated: '2019-01-29T03:03:24.831860'
+Resources:
+  -
+    Identifier: 'd1a763db-662a-4be2-9940-e08b715b7d1a'
+    Title: 'Supermarkets (KML)'
+    Url: 'https://geo.data.gov.sg/supermarkets/2019/01/24/kml/supermarkets.kml'
+    Format: 'KML'
+    Last Updated: '2019-01-23T16:00:00'
+  -
+    Identifier: '3933d0d7-a795-4c41-b611-e0e4f4697e54'
+    Title: 'Supermarkets (GEOJSON)'
+    Url: 'https://geo.data.gov.sg/supermarkets/2019/01/24/geojson/supermarkets.geojson'
+    Format: 'GeoJSON'
+    Last Updated: '2019-01-23T16:00:00'

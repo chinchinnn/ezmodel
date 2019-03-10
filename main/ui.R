@@ -49,7 +49,7 @@ shinyUI(
                 #   )
                 # )
                 tabsetPanel(
-                  tabPanel("Input Data", fluid = TRUE,
+                  tabPanel("Upload Data", fluid = TRUE,
                            sidebarLayout(
                              sidebarPanel(
                                tags$h4("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly."),
@@ -68,24 +68,32 @@ shinyUI(
                                textInput("epsg",
                                          label = "EPSG Code:",
                                          placeholder = "E.g. 4326 or 3414"),
-                               numericInput("radius",
-                                            label = "Number of Facilities within X metres:",
-                                            value = 3000,
-                                            min = 500,
-                                            max = 10000,
-                                            step = 500
-                                            ),
+                               # numericInput("radius",
+                               #              label = "Number of Facilities within X metres:",
+                               #              value = 3000,
+                               #              min = 500,
+                               #              max = 10000,
+                               #              step = 500
+                               #              ),
                                tags$hr(),
                                checkboxGroupInput(
                                  "preload",
                                  label = "Include Preloaded Data:",
-                                 choiceNames = c("CBD - Raffles Place Park", "Preschools (X = 1000)", "Primary Schools (X = 1000)", "Secondary Schools (X = 5000)", "Polyclinics (X = 3000)", "Hospitals (X = 5000)"),
-                                 choiceValues = c("rpp", "presch", "prisch", "secsch", "polyclinic", "hospital"),
+                                 choiceNames = c("CBD - Raffles Place Park", "Preschools", "Primary Schools (X = 1000)", "Secondary Schools"),
+                                 choiceValues = c("rpp", "presch", "prisch", "secsch"),
                                  selected = "rpp"
                                )
                                ),
                              mainPanel(
                                textOutput(outputId = "test")
+                             )
+                           )
+                  ),
+                  tabPanel("Define Variables", fluid = TRUE,
+                           sidebarLayout(
+                             sidebarPanel(sliderInput("year", "Year:", min = 1968, max = 2009, value = 2009, sep='')),
+                             mainPanel(
+                               ##
                              )
                            )
                   ),
