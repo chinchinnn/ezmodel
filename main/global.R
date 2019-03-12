@@ -5,8 +5,15 @@ testfxn <- function(x){
 
 #Import Required Packages
 importPkgs <- function(){
-  packages = c('shiny', 'tmap', 'tidyverse', 'sf', 'GWmodel', 'nngeo', 'shiny' , 'shinydashboard', 'gstat', 'rgdal')
+  packages = c('shiny','shinydashboard', 'shinyWidgets', 'shinycssloaders','shinythemes', 'shinyjs', 'shinyBS',
+               'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
+               'geofacet', 'ggmap', 'dendextend', 'heatmaply','tmap','leaflet',
+               'DT', 'GWmodel',
+               'corrplot', 'rlang')
   for (p in packages){
+    if (!require(p, character.only = T)) {
+      install.packages(p)
+    }  
     library(p,character.only = T)
   }
 }
@@ -34,4 +41,6 @@ process_variables <- function(user_hdb, var_sf, x, var_name){
   return(user_hdb)
 }
 
+#selectedData
+selectedData <- c()
 

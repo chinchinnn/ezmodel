@@ -24,15 +24,16 @@ shinyUI(
     ),
     dashboardBody(
       tabItems(
-        # Overview tab content ----
+  ##-------------------------------------------Tab of Overview-----------------------------------------------------
         tabItem(tabName = "overview",
                 fluidPage(
                   htmlOutput("overview")
                 )
                 
         ),
-        
-        # Main GWR tab content ----
+  ##--------------------------------------------End of Overview----------------------------------------------------
+  
+  ##--------------------------------------------Tab for Main GWR---------------------------------------------------
         tabItem(tabName = "gwrmodel",
                 # Boxes need to be put in a row (or column)
                 #   fluidPage(
@@ -52,6 +53,14 @@ shinyUI(
                   tabPanel("Upload Data", fluid = TRUE,
                            sidebarLayout(
                              sidebarPanel(
+                               tags$h3("Required Fields:"),
+                               textInput("variableName",
+                                         label = "Name of Variable (Single word/separate words with underscore)",
+                                         placeholder = "E.g. My_Feature"),
+                               textInput("epsg",
+                                         label = "EPSG Code:",
+                                         placeholder = "E.g. 4326 or 3414"),
+                               tags$h3("Upload Data Here:"),
                                tags$h4("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly."),
                                tags$h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
                                # Input: Select a file ----
@@ -60,32 +69,48 @@ shinyUI(
                                          accept = c("text/csv",
                                                     "text/comma-separated-values,text/plain",
                                                     ".csv")),
+                               tags$h4("Options below are for CSV uploads only"),
+                               checkboxInput("header", "Header (column names in first row)", TRUE),
+                               radioButtons("delim", "Delimiter",
+                                            choices = c(Comma = ",",
+                                                        Semicolon = ";",
+                                                        Tab = "\t"),
+                                            selected = ","),
+                               radioButtons("quote", "Quote",
+                                            choices = c(None = "",
+                                                        "Double Quote" = '"',
+                                                        "Single Quote" = "'"),
+                                            selected = '"'),
+                               tags$hr(),
                                fileInput("shapefile", "Upload Shapefile Here:", multiple = TRUE,
                                          accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj')),
-                               textInput("variableName",
-                                         label = "Name of Variable (Single word/separate words with underscore)",
-                                         placeholder = "E.g. Nursing"),
-                               textInput("epsg",
-                                         label = "EPSG Code:",
-                                         placeholder = "E.g. 4326 or 3414"),
-                               # numericInput("radius",
-                               #              label = "Number of Facilities within X metres:",
-                               #              value = 3000,
-                               #              min = 500,
-                               #              max = 10000,
-                               #              step = 500
-                               #              ),
+                               sliderInput("radius",
+                                            label = "Number of Facilities within X metres:",
+                                            value = 500,
+                                            min = 100,
+                                            max = 1000,
+                                            step = 50
+                                            ),
                                tags$hr(),
+                               tags$h3("Choose Preloaded Data Here:"),
                                checkboxGroupInput(
                                  "preload",
-                                 label = "Include Preloaded Data:",
-                                 choiceNames = c("CBD - Raffles Place Park", "Preschools", "Primary Schools (X = 1000)", "Secondary Schools"),
-                                 choiceValues = c("rpp", "presch", "prisch", "secsch"),
-                                 selected = "rpp"
+                                 label = "Include:",
+                                 choiceNames = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
+                                                 "Food Centres (e.g. Hawker Centres)", "Parks", "Sports Facilities (e.g. Sports Complex)"),
+                                 choiceValues = c("rpp", "mrt", "presch", "prisch", "secsch",
+                                                  "food_ctr",  "park", "sport"),
+                                 selected = c("rpp", "mrt", "prisch")
                                )
                                ),
                              mainPanel(
-                               textOutput(outputId = "test")
+                               # box(
+                               #   title = "Your Uploaded Data Will Appear Here:",
+                               #   width = 12,
+                               #   solidHeader = T,
+                               #   status = 'primary',
+                                 dataTableOutput('userdata') %>% withSpinner(type = 4)
+                               # )
                              )
                            )
                   ),
@@ -132,6 +157,7 @@ shinyUI(
                   
                 )
         )
+  ##--------------------------------------------End of Main GWR---------------------------------------------------
       )
     )
   )
