@@ -1,4 +1,4 @@
-school_name,address,postal_code,dgp_code,zone_code,cluster_code,mainlevel_code,sap_ind,autonomous_ind,gifted_ind,ip_ind,lat,long
+school_name,address,postal_code,dgp_code,zone_code,cluster_code,mainlevel_code,sap_ind,autonomous_ind,gifted_ind,ip_ind,Y,X
 NATIONAL JUNIOR COLLEGE,37 HILLCREST ROAD,288913,BUKIT TIMAH,SOUTH,SOUTH 3,MIXED LEVEL,No,No,No,Yes,1.329973,103.804488
 TEMASEK JUNIOR COLLEGE,22 BEDOK SOUTH ROAD,469278,BEDOK,EAST,EAST 2,MIXED LEVEL,No,No,No,Yes,1.3189,103.935561
 VICTORIA JUNIOR COLLEGE,20 MARINE VISTA,449035,BEDOK,EAST,EAST 7,JUNIOR COLLEGE,No,No,No,Yes,1.306142,103.919825

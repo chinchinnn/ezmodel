@@ -10,7 +10,6 @@
 # library(shiny)
 # library(shinydashboard)
 source("global.R", local = T)
-importPkgs()
 
 # Define UI for application that draws a histogram
 shinyUI(
@@ -35,20 +34,6 @@ shinyUI(
   
   ##--------------------------------------------Tab for Main GWR---------------------------------------------------
         tabItem(tabName = "gwrmodel",
-                # Boxes need to be put in a row (or column)
-                #   fluidPage(
-                #     sidebarLayout(
-                #       sidebarPanel(
-                #         selectInput(inputId = "test", 
-                #                   label = "Test",
-                #                   choices = c("A", "B"), 
-                #                   selected = "A")
-                #     ),
-                #       mainPanel(
-                #         textOutput(outputId = "test")
-                #       )
-                #   )
-                # )
                 tabsetPanel(
                   tabPanel("Upload Data", fluid = TRUE,
                            sidebarLayout(
@@ -84,13 +69,13 @@ shinyUI(
                                tags$hr(),
                                fileInput("shapefile", "Upload Shapefile Here:", multiple = TRUE,
                                          accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj')),
-                               sliderInput("radius",
-                                            label = "Number of Facilities within X metres:",
-                                            value = 500,
-                                            min = 100,
-                                            max = 1000,
-                                            step = 50
-                                            ),
+                               # sliderInput("radius",
+                               #              label = "Number of Facilities within X metres:",
+                               #              value = 500,
+                               #              min = 100,
+                               #              max = 1000,
+                               #              step = 50
+                               #              ),
                                tags$hr(),
                                tags$h3("Choose Preloaded Data Here:"),
                                checkboxGroupInput(
@@ -99,18 +84,24 @@ shinyUI(
                                  choiceNames = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
                                                  "Food Centres (e.g. Hawker Centres)", "Parks", "Sports Facilities (e.g. Sports Complex)"),
                                  choiceValues = c("rpp", "mrt", "presch", "prisch", "secsch",
-                                                  "food_ctr",  "park", "sport"),
+                                                  "foodctr",  "park", "sport"),
                                  selected = c("rpp", "mrt", "prisch")
                                )
                                ),
                              mainPanel(
-                               # box(
-                               #   title = "Your Uploaded Data Will Appear Here:",
-                               #   width = 12,
-                               #   solidHeader = T,
-                               #   status = 'primary',
-                                 dataTableOutput('userdata') %>% withSpinner(type = 4)
-                               # )
+                               box(
+                                 title = "Your Uploaded Data Will Appear Here:",
+                                 width = 12,
+                                 solidHeader = T,
+                                 status = 'primary',
+                                 div(
+                                   style = 'overflow-x: scroll',
+                                 dataTableOutput('userdata') %>%
+                                   withSpinner(type = 4),
+                                 leafletOutput(outputId = "userMap") %>%
+                                   withSpinner(type = 4)
+                                 )
+                               )
                              )
                            )
                   ),
