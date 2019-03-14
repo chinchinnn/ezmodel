@@ -9,7 +9,6 @@
 
 # library(shiny)
 source("global.R", local = T)
-importPkgs()
 
 shinyServer(function(input, output) {
   ##-----------------------------OVERVIEW TEXT-------------------------------------------------

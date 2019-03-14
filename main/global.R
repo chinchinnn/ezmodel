@@ -1,25 +1,29 @@
-#Test Function
-testfxn <- function(x){
-  return(paste(x, "World"))
-}
-
 #Import Required Packages
-importPkgs <- function(){
-  packages = c('shiny','shinydashboard', 'shinyWidgets', 'shinycssloaders','shinythemes', 'shinyjs', 'shinyBS',
-               'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
-               'geofacet', 'ggmap', 'dendextend', 'heatmaply','tmap','leaflet',
-               'DT', 'GWmodel',
-               'corrplot', 'rlang')
-  for (p in packages){
-    if (!require(p, character.only = T)) {
-      install.packages(p)
-    }  
-    library(p,character.only = T)
-  }
+packages = c('shiny','shinydashboard', 'shinyWidgets', 'shinycssloaders','shinythemes', 'shinyjs', 'shinyBS',
+             'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
+             'geofacet', 'ggmap', 'dendextend', 'heatmaply','tmap','leaflet',
+             'DT', 'GWmodel',
+             'corrplot', 'rlang')
+for (p in packages){
+  if (!require(p, character.only = T)) {
+    install.packages(p)
+  }  
+  library(p,character.only = T)
 }
 
 #Load Preloaded Data
-
+##-------------------------------------------------------HDB RESALE DATA----------------------------------------
+hdb <- st_read("data/hdb", layer = "HDB_Resale_2015_2018", crs=3414)
+hdb <- rename(hdb, "FLAT_TYPE" = "FLAT_TY",
+              "STREET_NAME" = "STREET_",
+              "STOREY_RANGE" = "STOREY_R",
+              "FLOOR_AREA_SQM" = "FLOOR_A",
+              "FLAT_MODEL" = "FLAT_MO",
+              "LEASE_COMMENCE_DATE" = "LEASE_C",
+              "REMAINING_LEASE" = "REMAINI",
+              "RESALE_PRICE" = "RESALE_",
+              "STOREY_MEDIAN" = "STOREY_M",
+              "FULL_ADDRESS" = "FULL_AD")
 ##-------------------------------------------------------MPSUBZONE----------------------------------------------
 mpsz <- st_read("data/spatial", layer = "MP14_SUBZONE_WEB_PL", crs = 3414)
 ##-------------------------------------------------------RAFFLES PLACE PARK-------------------------------------
