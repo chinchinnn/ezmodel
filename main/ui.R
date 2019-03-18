@@ -14,6 +14,7 @@ source("global.R", local = T)
 # Define UI for application that draws a histogram
 shinyUI(
   ui <- dashboardPage(
+    skin = "green",
     dashboardHeader(title = "EzModel"),
     dashboardSidebar(
       sidebarMenu(
@@ -25,7 +26,7 @@ shinyUI(
       tabItems(
   ##-------------------------------------------Tab of Overview-----------------------------------------------------
         tabItem(tabName = "overview",
-                fluidPage(
+                fluidPage(theme = shinytheme("flatly"),
                   htmlOutput("overview")
                 )
                 
@@ -34,6 +35,7 @@ shinyUI(
   
   ##--------------------------------------------Tab for Main GWR---------------------------------------------------
         tabItem(tabName = "gwrmodel",
+                fluidPage(theme = shinytheme("flatly"),
                 tabsetPanel(
                   tabPanel("Upload Data", fluid = TRUE,
                            sidebarLayout(
@@ -146,7 +148,7 @@ shinyUI(
                            )
                   )
                   
-                )
+                ))
         )
   ##--------------------------------------------End of Main GWR---------------------------------------------------
       )
