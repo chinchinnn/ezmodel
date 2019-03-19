@@ -10,14 +10,18 @@
 # library(shiny)
 source("global.R", local = T)
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   ##-----------------------------OVERVIEW TEXT-------------------------------------------------
   output$overview <- renderText(
     "<h1>Project Overview:</h1><br>User-customised Geographically Weighted Regression Model for HDB Resale Prices Data."
   )
   
   ##---------UPLOAD TAB----------Use myData() to access user-uploaded sf data------------------
-  myData <- reactive({
+  featureTitle <- eventReactive(input$uploadSubmit, {input$variableName})
+  
+  output$featTitle <- renderUI({h3(featureTitle())})
+  
+  myData <- eventReactive(input$uploadSubmit, {
     ##----------------PROCESS CSV-----------------------
     if(!is.null(input$csvfile)){
       temp <- read_delim(input$csvfile$datapath,
@@ -50,7 +54,7 @@ shinyServer(function(input, output) {
     } else {
       return(NULL)
     }
-    })
+    }, ignoreNULL = FALSE)
   ##---------UPLOAD TAB----------Render myData() into dataTable------------------
   output$userdata <- DT::renderDataTable(
     DT::datatable(myData(),
@@ -58,6 +62,8 @@ shinyServer(function(input, output) {
                   escape = FALSE,
                   options = list(
                     scrollY = TRUE,
+                    sScrollX = "100%",
+                    scrollX = TRUE,
                     server = FALSE
                   ))
   )
@@ -66,11 +72,12 @@ shinyServer(function(input, output) {
     tmap_mode("view")
     userDotMap <- 
       tm_shape(mpsz) +
-      tm_polygons(id = "SUBZONE_N") +
+      tm_polygons(id = "SUBZONE_N", alpha = 0) +
       tm_view(
         set.zoom.limits = c(10, 14),
         text.size.variable = TRUE
-      )
+      ) +
+      tmap_options(basemaps = "OpenStreetMap")
     if(is.null(myData())) return(tmap_leaflet(userDotMap))
     else{
     userDotMap <- userDotMap + 
@@ -80,17 +87,34 @@ shinyServer(function(input, output) {
     tmap_leaflet(userDotMap)}
   })
   
-  ##TESTING CODE ONLY: NOT USED
-  output$distPlot <- renderPlot({
-    
-    # generate bins based on input$bins from ui.R
-    x    <- faithful[, 2] 
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
-    # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white')
-    
+  ##------------FILTER HDB DATA BY YEAR------------------------------------------
+  hdb_filtered <- eventReactive(
+    input$yrFilterBtn,
+    {filter(hdb, hdb$YEAR %in% c(input$fromYr:input$toYr))},
+    ignoreNULL = FALSE
+  )
+  
+  ##------------MUTATE HDB DATA ACCORDING TO HOW USER DEF VARS-------------------
+  hdb_withVars <- reactive({
+    ##THIS IS PLACEHOLDER CODE; EDIT ACCORDINGLY
+    hdb_filtered()
   })
+  
+  ##------------RENDER HDB DATA--------------------------------------------------
+  output$hdbWithVarsDT <- renderDataTable(
+    {datatable(hdb_withVars(),
+               class = "nowrap hover row-border",
+               escape = FALSE,
+               options = list(
+                 scrollY = TRUE,
+                 sScrollX = "100%",
+                 scrollX = TRUE,
+                 server = FALSE
+               ))}
+  )
+  
+  ##-----------------------TRANSFORM VARS----------------------------------------
+  
   
   ##TESTING CODE ONLY
   output$test <- renderText(

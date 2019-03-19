@@ -43,14 +43,18 @@ shinyUI(
                                tags$h3("Required Fields:"),
                                textInput("variableName",
                                          label = "Name of Variable (Single word/separate words with underscore)",
-                                         placeholder = "E.g. My_Feature"),
+                                         placeholder = "E.g. MY_FEATURE"),
                                textInput("epsg",
                                          label = "EPSG Code:",
                                          placeholder = "E.g. 4326 or 3414"),
                                tags$h3("Upload Data Here:"),
                                tags$h4("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly."),
                                tags$h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
+                                h4(strong("Click on the submit button below to submit.")),
                                # Input: Select a file ----
+                               fileInput("shapefile", "Upload Shapefile Here:", multiple = TRUE,
+                                         accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj')),
+                               tags$hr(),
                                fileInput("csvfile", "Upload CSV File Here:",
                                          multiple = FALSE,
                                          accept = c("text/csv",
@@ -68,9 +72,7 @@ shinyUI(
                                                         "Double Quote" = '"',
                                                         "Single Quote" = "'"),
                                             selected = '"'),
-                               tags$hr(),
-                               fileInput("shapefile", "Upload Shapefile Here:", multiple = TRUE,
-                                         accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj')),
+
                                # sliderInput("radius",
                                #              label = "Number of Facilities within X metres:",
                                #              value = 500,
@@ -78,6 +80,7 @@ shinyUI(
                                #              max = 1000,
                                #              step = 50
                                #              ),
+                               actionButton("uploadSubmit", "Upload"),
                                tags$hr(),
                                tags$h3("Choose Preloaded Data Here:"),
                                checkboxGroupInput(
@@ -98,6 +101,7 @@ shinyUI(
                                  status = 'primary',
                                  div(
                                    style = 'overflow-x: scroll',
+                                  uiOutput("featTitle"),
                                  dataTableOutput('userdata') %>%
                                    withSpinner(type = 4),
                                  leafletOutput(outputId = "userMap") %>%
@@ -108,20 +112,33 @@ shinyUI(
                            )
                   ),
                   tabPanel("Define Variables", fluid = TRUE,
-                           sidebarLayout(
-                             sidebarPanel(sliderInput("year", "Year:", min = 1968, max = 2009, value = 2009, sep='')),
-                             mainPanel(
-                               ##
+                           fluidPage(
+                             h5(strong("Filter HDB Resale Data by Year:")),
+                             h5("View filtered results in next tab. Default filtered to 2018 data."),
+                             fluidRow(
+                               column(4,
+                                selectInput("fromYr", "From:", c(2015, 2016, 2017, 2018), selected = 2018)
+                                             ),
+                               column(4,
+                                selectInput("toYr", "To:", c(2015, 2016, 2017, 2018), selected = 2018)
+                                      ),
+                               column(4,
+                                actionButton("yrFilterBtn", "Filter")
+                                      )
                              )
                            )
+                           # sidebarLayout(
+                           #   sidebarPanel(sliderInput("year", "Year:", min = 1968, max = 2009, value = 2009, sep='')),
+                           #   mainPanel(
+                           #     ##
+                           #   )
+                           # )
                   ),
                   tabPanel("View Data", fluid = TRUE,
-                           sidebarLayout(
-                             sidebarPanel(sliderInput("year", "Year:", min = 1968, max = 2009, value = 2009, sep='')),
-                             mainPanel(
-                               ##
-                             )
-                           )
+                          fluidPage(
+                            dataTableOutput('hdbWithVarsDT') %>%
+                              withSpinner(type = 4)
+                          )
                   ),
                   tabPanel("Transform Variables", fluid = TRUE,
                            sidebarLayout(

@@ -82,3 +82,7 @@ process_variables <- function(user_hdb, var_sf, x, var_name){
 #selectedData
 selectedData <- c()
 
+#non-lm-Var Columns
+nonlmVars <- c("MONTH", "TOWN", "FLAT_TYPE", "BLOCK", "STREET_NAME",
+               "STOREY_RANGE", "FLAT_MODEL", "LEASE_COMMENCE_DATE",
+               "FULL_ADDRESS", "YEAR", "geometry")
