@@ -93,6 +93,23 @@ shinyServer(function(input, output, session) {
 
   })
   
+  ##testing dynamic checkgroup
+  observe({
+    x <- input$preload
+    
+    # Can use character(0) to remove all choices
+    if (is.null(x))
+      x <- character(0)
+    
+    # Can also set the label and select items
+    updateCheckboxGroupInput(session, "inCheckboxGroup2",
+                             label = paste("Datasets Selected for Analysis:"),
+                             choices = x,
+                             selected = x
+    )
+  })
+  
+  ##dynamic table to output selected data
   output$values <- renderTable({preloaded_data()})
   
   ##------------FILTER HDB DATA BY YEAR------------------------------------------
