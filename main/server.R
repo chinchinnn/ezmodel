@@ -86,6 +86,14 @@ shinyServer(function(input, output, session) {
 
     tmap_leaflet(userDotMap)}
   })
+  ##---------PRELOADED DATA----------Use myData() to access user-uploaded sf data------------------
+  preloaded_data <- reactive({
+    input$preload
+
+
+  })
+  
+  output$values <- renderTable({preloaded_data()})
   
   ##------------FILTER HDB DATA BY YEAR------------------------------------------
   hdb_filtered <- eventReactive(

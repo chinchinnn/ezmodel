@@ -84,13 +84,13 @@ shinyUI(
                                tags$hr(),
                                tags$h3("Choose Preloaded Data Here:"),
                                checkboxGroupInput(
-                                 "preload",
+                                 inputId = "preload",
                                  label = "Include:",
                                  choiceNames = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
                                                  "Food Centres (e.g. Hawker Centres)", "Parks", "Sports Facilities (e.g. Sports Complex)"),
-                                 choiceValues = c("rpp", "mrt", "presch", "prisch", "secsch",
-                                                  "foodctr",  "park", "sport"),
-                                 selected = c("rpp", "mrt", "prisch")
+                                 choiceValues = c("Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
+                                                  "Food Centres", "Parks", "Sports Facilities"),
+                                 selected = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools")
                                )
                                ),
                              mainPanel(
@@ -126,13 +126,57 @@ shinyUI(
                                 actionButton("yrFilterBtn", "Filter")
                                       )
                              )
-                           )
+                           ),
                            sidebarLayout(
-                             sidebarPanel(sliderInput("year", "Year:", min = 1968, max = 2009, value = 2009, sep='')),
+                             sidebarPanel(
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('Preschools') > -1",
+                                 h5(strong("Number of Preschools within radius (X meters) from HDB:")),
+                                 sliderInput("preschoolRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               ),
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('MRT/LRT Stations') > -1",
+                                 h5(strong("Number of MRT/LRT Stations within radius (X meters) from HDB:")),
+                                 sliderInput("mrtRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               ),
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('Primary Schools') > -1",
+                                 h5(strong("Number of Primary Schools within radius (X meters) from HDB:")),
+                                 sliderInput("prischoolRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               ),
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('Secondary Schools') > -1",
+                                 h5(strong("Number of Secondary Schools within radius (X meters) from HDB:")),
+                                 sliderInput("secschoolRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               ),
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('Food Centres') > -1",
+                                 h5(strong("Number of Food Centres within radius (X meters) from HDB:")),
+                                 sliderInput("foodRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               ),
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('Parks') > -1",
+                                 h5(strong("Number of Parks within radius (X meters) from HDB:")),
+                                 sliderInput("parkRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               ),
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('Sports Facilities') > -1",
+                                 h5(strong("Number of Sports Facilities within radius (X meters) from HDB:")),
+                                 sliderInput("sportRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               ),
+                               conditionalPanel(
+                                 condition = "input.preload.indexOf('Raffles Place Park') > -1",
+                                 h5(strong("Number of Raffles Place Park within radius (X meters) from HDB:")),
+                                 sliderInput("rppRadius", "Radius (meters)", min=1, max=1000, value=10)
+                               )
+                             ), 
                              mainPanel(
-                               ##
+                               tableOutput("values")
                              )
                            )
+                           
+                           
+                           
                   ),
                   tabPanel("View Data", fluid = TRUE,
                           fluidPage(
