@@ -34,25 +34,25 @@ rpp <- as_tibble(rpp) %>%
   st_as_sf(coords = c("long", "lat"), crs = "+init=epsg:4326") %>%
   st_transform(crs = 3414)
 ##-------------------------------------------------------SPORTS FACILITIES--------------------------------------
-sport <- st_read("data/spatial", layer = "sports-facilities", crs = 3414)
-##-------------------------------------------------------PARKS
-park <- st_read("data/spatial", layer = "nparks-park", crs = 3414)
-##-------------------------------------------------------FOOD CENTRES-------------------------------------------
-foodctr <- st_read("data/spatial", layer = "food-centres", crs = 3414)
-##-------------------------------------------------------MRT/LRT STATIONS
-mrt <- st_read("data/spatial", layer = "MRTLRTStnPtt", crs = 3414)
-##-------------------------------------------------------PRESCHOOLS---------------------------------------------
-presch <- st_read("data/spatial", layer = "PRESCHOOL", crs = 3414)
-##-------------------------------------------------------PRI and SEC SCHOOLS------------------------------------
-sch <- read_csv("data/spatial/schoolLatLng.csv")
-prisch <- sch %>%
-  filter(mainlevel_code == "PRIMARY") %>%
-  st_as_sf(coords = c("X", "Y"), crs = "+init=epsg:4326") %>%
-  st_transform(crs = 3414)
-secsch <- sch %>%
-  filter(mainlevel_code == "SECONDARY" | mainlevel_code == "MIXED LEVEL") %>%
-  st_as_sf(coords = c("X", "Y"), crs = "+init=epsg:4326") %>%
-  st_transform(crs = 3414)
+# sport <- st_read("data/spatial", layer = "sports-facilities", crs = 3414)
+# ##-------------------------------------------------------PARKS
+# park <- st_read("data/spatial", layer = "nparks-park", crs = 3414)
+# ##-------------------------------------------------------FOOD CENTRES-------------------------------------------
+# foodctr <- st_read("data/spatial", layer = "food-centres", crs = 3414)
+# ##-------------------------------------------------------MRT/LRT STATIONS
+# mrt <- st_read("data/spatial", layer = "MRTLRTStnPtt", crs = 3414)
+# ##-------------------------------------------------------PRESCHOOLS---------------------------------------------
+# presch <- st_read("data/spatial", layer = "PRESCHOOL", crs = 3414)
+# ##-------------------------------------------------------PRI and SEC SCHOOLS------------------------------------
+# sch <- read_csv("data/spatial/schoolLatLng.csv")
+# prisch <- sch %>%
+#   filter(mainlevel_code == "PRIMARY") %>%
+#   st_as_sf(coords = c("X", "Y"), crs = "+init=epsg:4326") %>%
+#   st_transform(crs = 3414)
+# secsch <- sch %>%
+#   filter(mainlevel_code == "SECONDARY" | mainlevel_code == "MIXED LEVEL") %>%
+#   st_as_sf(coords = c("X", "Y"), crs = "+init=epsg:4326") %>%
+#   st_transform(crs = 3414)
 ##END OF LOADING PRELOADED DATA
 
 ##------------------------------------------------FUNCTIONS------------------------------------------------

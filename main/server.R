@@ -25,15 +25,15 @@ shinyServer(function(input, output, session) {
     ##----------------PROCESS CSV-----------------------
     if(!is.null(input$csvfile)){
       temp <- read_delim(input$csvfile$datapath,
-                 col_names = input$header,
-                 delim = input$delim,
-                 quote = input$quote)
+                         col_names = input$header,
+                         delim = input$delim,
+                         quote = input$quote)
       temp <- st_as_sf(temp, coords = c("X", "Y"), crs = as.numeric(input$epsg))
       if(input$epsg != 3414){
         temp <- st_transform(temp, 3414)
       }
       temp #RETURN
-    ##----------------PROCESS SHAPEFILE-----------------
+      ##----------------PROCESS SHAPEFILE-----------------
     } else if (!is.null(input$shapefile)){
       prevWD <- getwd()
       shpDF <- input$shapefile
@@ -54,7 +54,7 @@ shinyServer(function(input, output, session) {
     } else {
       return(NULL)
     }
-    }, ignoreNULL = FALSE)
+  }, ignoreNULL = FALSE)
   ##---------UPLOAD TAB----------Render myData() into dataTable------------------
   output$userdata <- DT::renderDataTable(
     DT::datatable(myData(),
@@ -71,26 +71,26 @@ shinyServer(function(input, output, session) {
   output$userMap <- renderLeaflet({
     tmap_mode("view")
     userDotMap <- 
-      tm_shape(mpsz) +
+      tm_shape(mpsz, name = "SUBZONE_MASTERPLAN") +
       tm_polygons(id = "SUBZONE_N", alpha = 0) +
       tm_view(
-        set.zoom.limits = c(10, 14),
+        set.zoom.limits = c(11, 14),
         text.size.variable = TRUE
       ) +
       tmap_options(basemaps = "OpenStreetMap")
     if(is.null(myData())) return(tmap_leaflet(userDotMap))
     else{
-    userDotMap <- userDotMap + 
-      # tm_shape(mpsz) + tm_polygons(id = "SUBZONE_N", alpha = 0) +
-      tm_shape(myData(), name = input$variableName) + tm_dots(col="red")
-
-    tmap_leaflet(userDotMap)}
+      userDotMap <- userDotMap + 
+        # tm_shape(mpsz) + tm_polygons(id = "SUBZONE_N", alpha = 0) +
+        tm_shape(myData(), name = input$variableName) + tm_dots(col="red")
+      
+      tmap_leaflet(userDotMap)}
   })
   ##---------PRELOADED DATA----------Use myData() to access user-uploaded sf data------------------
   preloaded_data <- reactive({
     input$preload
-
-
+    
+    
   })
   
   ##testing dynamic checkgroup
@@ -114,7 +114,6 @@ shinyServer(function(input, output, session) {
   
   ##------------FILTER HDB DATA BY YEAR------------------------------------------
   hdb_filtered <- reactive(
-    # input$yrFilterBtn,
     return(c(input$fromYr, input$toYr))
   )
   
@@ -123,25 +122,28 @@ shinyServer(function(input, output, session) {
     ##THIS IS PLACEHOLDER CODE; EDIT ACCORDINGLY
     years <- hdb_filtered()
     temp <- filter(hdb, hdb$YEAR %in% c(years[1]:years[2]))
-    #SOME MUTATION HERE
     
-    st_write(temp, "data/temp.csv", layer_options = "GEOMETRY=AS_XY", delete_dsn = TRUE)
-    cat("FILE WRITTEN")
+    ###################
+    #SOME MUTATION HERE
+    ###################
+    
+    # st_write(temp, "data/temp.csv", layer_options = "GEOMETRY=AS_XY", delete_dsn = TRUE)
+    # cat("FILE WRITTEN")
     temp
   })
   
   ##------------RENDER HDB DATA--------------------------------------------------
-  masterData <- read_csv("data/temp.csv") %>% st_as_sf(coords = c("X", "Y"), crs = 3414)
-  masterDataGeom <- masterData$geometry
+  staged_data <- reactiveValues(value = hdb %>% st_drop_geometry(), geom = hdb$geometry)
   
-  observeEvent(input$refreshData, {
-  masterData <- read_csv("data/temp.csv") %>% st_as_sf(coords = c("X", "Y"), crs = 3414)
-  masterDataGeom <- masterData$geometry
-  cat("FILE RE-READ")
+  observeEvent({input$refreshData | input$yrFilterBtn | input$calcVar}, {
+    temp <- hdb_withVars()
+    staged_data$value <- temp %>% st_drop_geometry()
+    staged_data$geom <- temp$geometry
+    cat("FILE RE-READ")
   })
   
   output$hdbWithVarsDT <- renderDataTable(
-    {datatable({hdb_withVars()},
+    {datatable({cbind(staged_data$value, staged_data$geom)},
                class = "nowrap hover row-border",
                escape = FALSE,
                options = list(
@@ -153,13 +155,6 @@ shinyServer(function(input, output, session) {
   )
   
   ##-----------------------TRANSFORM VARS----------------------------------------
-  staged_data <- reactiveValues(value = as_data_frame(masterData %>% st_drop_geometry()))
-  
-  observeEvent(input$refreshData, ignoreNULL = FALSE, {
-  staged_data <- reactiveValues(value = as_data_frame(masterData %>% st_drop_geometry()))
-  cat("UPDATED")
-  })
-
   shinyInput <- function(FUN, len, id, ...) {
     inputs <- character(len)
     for (i in seq_len(len)) {
@@ -167,10 +162,10 @@ shinyServer(function(input, output, session) {
     }
     inputs
   }
-
+  
   staged_data_transformed <- reactiveValues(value = data_frame())
   transform_variable_list <- reactiveValues(value = data_frame())
-
+  
   observeEvent(input$refreshData, ignoreNULL = FALSE, {
     staged_data_transformed$value <- staged_data$value
     cat("CHANGED")
@@ -178,13 +173,13 @@ shinyServer(function(input, output, session) {
       `Variable List` = colnames(staged_data$value)[!(colnames(staged_data$value) %in% nonlmVars)],
       `Transform Status` = rep("None", ncol(staged_data$value)-10)
     )
-
+    
     updateSelectInput(session, inputId = "variableTrf_gwr", label = "Select Variable to Transform",
                       choices = colnames(staged_data$value)[!(colnames(staged_data$value) %in% nonlmVars)])
   })
-
+  
   output$transformationTable <- renderDataTable({
-
+    
     cbind(transform_variable_list$value,
           data.frame(Actions = shinyInput(actionButton, nrow(transform_variable_list$value),
                                           'button_', label = "Plot Histogram",
@@ -200,7 +195,7 @@ shinyServer(function(input, output, session) {
         )
       )
   })
-
+  
   transformVariable <- function(var, command) {
     if(command == "None")
       return(var)
@@ -211,7 +206,7 @@ shinyServer(function(input, output, session) {
       else
         return(log(var))
     } else if(command == "Sqrt") {
-
+      
       minVar <- min(var)
       if (minVar < 0)
         return(sqrt(var + abs(minVar)))
@@ -221,7 +216,7 @@ shinyServer(function(input, output, session) {
       return(exp(var))
     }
   }
-
+  
   variableNameTranslation <- function(command) {
     switch(command,
            "None"="",
@@ -229,7 +224,7 @@ shinyServer(function(input, output, session) {
            "Sqrt"="SQRT_",
            "Exp"="EXP_")
   }
-
+  
   observeEvent(input$btnTransform, {
     trfMode <- as.character(input$trfMode_gwr)
     
@@ -239,7 +234,7 @@ shinyServer(function(input, output, session) {
     
     transform_variable_list$value <- transform_variable_list$value %>%
       mutate(`Transform Status` = ifelse(`Variable List` == varSelected, trfMode, `Transform Status`))
-
+    
     transTrfMode <- variableNameTranslation(trfMode)
     # cat(transTrfMode)
     transformColumn <- transformVariable(as.numeric(unlist(staged_data$value[,input$variableTrf_gwr])), trfMode)
@@ -247,18 +242,18 @@ shinyServer(function(input, output, session) {
     # cat(length(transformColumn))
     staged_data_transformed$value[,paste0(transTrfMode, input$variableTrf_gwr)] <-
       replace(transformColumn, infpresented, 0)
-
+    
     if(sum(infpresented) > 0)
       showNotification("The transformation produced INF values. Coerced to 0", type="warning")
-
+    
   })
-
-
+  
+  
   observeEvent(input$plothist_button, {
     selectedRow <- as.numeric(strsplit(input$plothist_button, "_")[[1]][2])
     selectedVar <- as.character(transform_variable_list$value[selectedRow,"Variable List"])
     selectedTrf <- variableNameTranslation(as.character(transform_variable_list$value[selectedRow,"Transform Status"]))
-
+    
     output$varhistPlot <- renderPlot({
       ggplot(data=staged_data_transformed$value, aes(x= UQ(rlang::sym(paste0(selectedTrf, selectedVar))))) +
         geom_histogram(bins = 20, fill = "#0000ff", colour = "grey60") +
@@ -266,7 +261,7 @@ shinyServer(function(input, output, session) {
               axis.title = element_text(size = 16, face = 'bold')) +
         ylab("")
     })
-
+    
     session$sendCustomMessage(type = 'resetInputValue', message =  "plothist_button")
     toggleModal(session, "varHistModal", toggle = "open")
   })
@@ -278,7 +273,104 @@ shinyServer(function(input, output, session) {
   
   
   ##-----------------------SELECT VARS----------------------------------------
+  corr_variable_list <- reactiveValues(value = data.frame())
   
+  observe({
+    nameTranslationTrf <- c(sapply( 1:nrow(transform_variable_list$value), 
+                                    function(i) variableNameTranslation(as.character(transform_variable_list$value[i, "Transform Status"]))))
+    
+    corr_variable_list$value <- data.frame(
+      var_list = paste0(nameTranslationTrf,
+                        unlist(transform_variable_list$value %>% dplyr::select(`Variable List`))),
+      includeexclude = c(1, rep(0, nrow(transform_variable_list$value)-1))
+    )
+  })
+  
+  
+  gwrAllVariable_DisplayList <- data_frame()
+  gwrSelectedVariable_DisplayList <- data_frame()
+  
+  
+  output$gwrAllVariables <- renderDataTable({
+    gwrAllVariable_DisplayList <<- corr_variable_list$value %>% filter(includeexclude == 0) %>% dplyr::select(-includeexclude)
+    
+    plotData <- cbind(gwrAllVariable_DisplayList,
+                      data.frame(Actions = shinyInput(  actionButton, nrow(gwrAllVariable_DisplayList),
+                                                        'button_', label = "Include",
+                                                        onclick = 'Shiny.onInputChange(\"include_button\",  this.id)'))
+    ) 
+    colnames(plotData) <- c("Variable List", "Actions")
+    
+    plotData  %>%
+      datatable(
+        class = "nowrap hover row-border",
+        escape = FALSE,
+        options = list(
+          dom = 'tip',
+          scrollY = TRUE,
+          server = FALSE
+        )
+      )
+  })
+  
+  output$gwrSelectedVariables <- renderDataTable({
+    gwrSelectedVariable_DisplayList <<- corr_variable_list$value %>% filter(includeexclude == 1) %>% dplyr::select(-includeexclude)
+    
+    plotData2 <- cbind(gwrSelectedVariable_DisplayList,
+                       data.frame(Actions = shinyInput(  actionButton, nrow(gwrSelectedVariable_DisplayList),
+                                                         'button_', label = "Exclude",
+                                                         onclick = 'Shiny.onInputChange(\"exclude_button\",  this.id)'))
+    )
+    colnames(plotData2) <- c("Variable List", "Actions")
+    
+    plotData2  %>%
+      datatable(
+        class = "nowrap hover row-border",
+        escape = FALSE,
+        options = list(
+          dom = 'tip',
+          scrollY = TRUE,
+          server = FALSE
+        )
+      )
+  })
+  
+  
+  
+  observeEvent(input$include_button, {
+    selectedRow <- as.numeric(strsplit(input$include_button, "_")[[1]][2])
+    
+    corr_variable_list$value <- corr_variable_list$value %>%
+      mutate(includeexclude = ifelse(var_list == gwrAllVariable_DisplayList[selectedRow,1], 1, includeexclude))
+    
+    session$sendCustomMessage(type = 'resetInputValue', message =  "include_button")
+    
+  })
+  
+  observeEvent(input$exclude_button, {
+    selectedRow <- as.numeric(strsplit(input$exclude_button, "_")[[1]][2])
+    
+    corr_variable_list$value <- corr_variable_list$value %>%
+      mutate(includeexclude = ifelse(var_list == gwrSelectedVariable_DisplayList[selectedRow,1] &
+                                       !str_detect(var_list, "YIELD"), 0, includeexclude))
+    
+    session$sendCustomMessage(type = 'resetInputValue', message =  "exclude_button")
+    
+  })
+  
+  correlationPlotData <- reactiveValues(data = data_frame())
+  observeEvent(input$corrBtn, {
+    if(nrow(gwrSelectedVariable_DisplayList) > 1) {
+      variableSelect <- as.character(gwrSelectedVariable_DisplayList[,'var_list'])
+      output$corrPlotErrorMsg <- renderText({""})
+      output$correlationPlot <- renderPlot({corrplot.mixed(cor(staged_data_transformed$value[,variableSelect]), 
+                                                           tl.cex = 1.1, number.cex = 1.3, cl.cex = 1.1,
+                                                           lower = "ellipse", upper = "number")})
+    } else {
+      output$correlationPlot <- renderPlot({})
+      output$corrPlotErrorMsg <- renderText({"Please select minimum 1 independent variable!"})
+    }
+  })
   
   
   

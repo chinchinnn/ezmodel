@@ -47,31 +47,32 @@ shinyUI(
                                textInput("epsg",
                                          label = "EPSG Code:",
                                          placeholder = "E.g. 4326 or 3414"),
-                               tags$h3("Upload Data Here:"),
-                               tags$h4("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly."),
-                               tags$h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
-                                h4(strong("Click on the submit button below to submit.")),
+                               h3("Upload Data Here:"),
+                               h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
+                               h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
+                                h4(strong("Click on the Upload button below to submit.")),
                                # Input: Select a file ----
                                fileInput("shapefile", "Upload Shapefile Here:", multiple = TRUE,
                                          accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj')),
-                               tags$hr(),
                                fileInput("csvfile", "Upload CSV File Here:",
                                          multiple = FALSE,
                                          accept = c("text/csv",
                                                     "text/comma-separated-values,text/plain",
                                                     ".csv")),
-                               tags$h4("Options below are for CSV uploads only"),
-                               checkboxInput("header", "Header (column names in first row)", TRUE),
-                               radioButtons("delim", "Delimiter",
-                                            choices = c(Comma = ",",
-                                                        Semicolon = ";",
-                                                        Tab = "\t"),
-                                            selected = ","),
-                               radioButtons("quote", "Quote",
-                                            choices = c(None = "",
-                                                        "Double Quote" = '"',
-                                                        "Single Quote" = "'"),
-                                            selected = '"'),
+                               box(width = 12, collapsed = TRUE, collapsible = TRUE,
+                                 title = "CSV upload options",
+                                 checkboxInput("header", "Header (column names in first row)", TRUE),
+                                 radioButtons("delim", "Delimiter",
+                                              choices = c(Comma = ",",
+                                                          Semicolon = ";",
+                                                          Tab = "\t"),
+                                              selected = ","),
+                                 radioButtons("quote", "Quote",
+                                              choices = c(None = "",
+                                                          "Double Quote" = '"',
+                                                          "Single Quote" = "'"),
+                                              selected = '"')
+                               ),
 
                                # sliderInput("radius",
                                #              label = "Number of Facilities within X metres:",
@@ -269,17 +270,16 @@ shinyUI(
                                          title = "Selected Local Variable(s) for GWR",
                                          width = 12,
                                          status = 'primary',
-                                         dataTableOutput("gwrSelLocVariables") %>% withSpinner(type = 4),
-                                         actionButton(inputId = "corrLocBtn", label = "Show Correlations")
+                                         dataTableOutput("gwrSelectedVariables") %>% withSpinner(type = 4)
                                        )),
                                        fluidRow(
                                        box(
                                          title = "Selected Global Variable(s) for GWR",
                                          width = 12,
                                          status = 'primary',
-                                         dataTableOutput("gwrSelGlobVariables") %>% withSpinner(type = 4),
-                                         actionButton(inputId = "corrGlobBtn", label = "Show Correlations")
-                                       ))
+                                         dataTableOutput("gwrSelGlobVariables") %>% withSpinner(type = 4)
+                                       ),
+                                       actionButton(inputId = "corrGlobBtn", label = "Show Correlations"))
                              )
                            )
                   ),
