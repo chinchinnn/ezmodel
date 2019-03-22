@@ -177,7 +177,7 @@ shinyUI(
                              ), 
                              mainPanel(
                                # tableOutput("values")
-                               
+                               actionButton("calcVar","Calculate Variables")
                                
                              )
                            )
@@ -191,19 +191,95 @@ shinyUI(
                               withSpinner(type = 4)
                           )
                   ),
-                  tabPanel("Transform Variables", fluid = TRUE,
-                           sidebarLayout(
-                             sidebarPanel(sliderInput("year", "Year:", min = 1968, max = 2009, value = 2009, sep='')),
-                             mainPanel(
-                               ##
-                             )
+                  tabPanel("Transform Variables", fluid = TRUE, value = 'gwrstep4',
+                           tags$br(),
+                           bsModal(
+                             "varHistModal",
+                             "Variable Histogram",
+                             trigger = "",
+                             size = "large",
+                             plotOutput("varhistPlot")
+                             
+                           ),
+                           fluidRow(
+                             column(1),
+                             column(2,
+                                    actionButton("refreshData", "Refresh Variables")
+                                    ),
+                             column(
+                               3,
+                               selectInput(
+                                 inputId = "variableTrf_gwr",
+                                 label = "Select Var to Transform",
+                                 choices = c()
+                               )
+                             ),
+                             column(
+                               3,
+                               selectInput(
+                                 "trfMode_gwr",
+                                 label = "Select Transform Mode",
+                                 choices = c(
+                                   "None" = "None",
+                                   "Log" =
+                                     "Log",
+                                   "Sqrt" =
+                                     "Sqrt",
+                                   "Exp" =
+                                     "Exp"
+                                 )
+                               )
+                             ),
+                             column(2, actionButton("btnTransform", label =
+                                                      "Transform")),
+                             column(1)
+                           ),
+                           
+                           fluidRow(
+                             column(1),
+                             column(
+                               10,
+                               dataTableOutput("transformationTable") %>% withSpinner(type =
+                                                                                        4)
+                             ),
+                             column(1)
                            )
                   ),
                   tabPanel("Select Variables", fluid = TRUE,
+                           value = 'gwrstep3',
+                           tags$br(),
+                           bsModal(
+                             "corrModal",
+                             "Correlation Plot",
+                             "corrBtn",
+                             size = "large",
+                             plotOutput("correlationPlot"),
+                             textOutput("corrPlotErrorMsg")
+                             
+                           ),
                            sidebarLayout(
-                             sidebarPanel(sliderInput("year", "Year:", min = 1968, max = 2009, value = 2009, sep='')),
-                             mainPanel(
-                               ##
+                             sidebarPanel(width = 6,
+                                          title = "Independent Variables Pool",
+                                          status = 'primary',
+                                          dataTableOutput("gwrAllVariables") %>% withSpinner(type = 4)
+                                          ),
+                             mainPanel(width = 6,
+                                       fluidRow(
+                                       box(
+                                         title = "Selected Local Variable(s) for GWR",
+                                         width = 12,
+                                         status = 'primary',
+                                         dataTableOutput("gwrSelLocVariables") %>% withSpinner(type = 4),
+                                         actionButton(inputId = "corrLocBtn", label = "Show Correlations")
+                                       )),
+                                       fluidRow(
+                                       box(
+                                         title = "Selected Global Variable(s) for GWR",
+                                         width = 12,
+                                         status = 'primary',
+                                         dataTableOutput("gwrSelGlobVariables") %>% withSpinner(type = 4),
+                                         actionButton(inputId = "corrGlobBtn", label = "Show Correlations")
+                                       ))
                              )
                            )
                   ),

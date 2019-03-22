@@ -2,7 +2,7 @@
 packages = c('shiny','shinydashboard', 'shinyWidgets', 'shinycssloaders','shinythemes', 'shinyjs', 'shinyBS',
              'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
              'geofacet', 'ggmap', 'dendextend', 'heatmaply','tmap','leaflet',
-             'DT', 'GWmodel',
+             'DT', 'GWmodel', 'nngeo',
              'corrplot', 'rlang')
 for (p in packages){
   if (!require(p, character.only = T)) {
