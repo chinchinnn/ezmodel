@@ -113,21 +113,19 @@ shinyServer(function(input, output, session) {
   output$values <- renderTable({preloaded_data()})
   
   ##------------FILTER HDB DATA BY YEAR------------------------------------------
-  hdb_filtered <- eventReactive(
-    input$yrFilterBtn,
-    {temp <- filter(hdb, hdb$YEAR %in% c(input$fromYr:input$toYr))
-      st_write(temp, "data/temp.csv", layer_options = "GEOMETRY=AS_XY", delete_layer = TRUE)},
-    ignoreNULL = FALSE
+  hdb_filtered <- reactive(
+    # input$yrFilterBtn,
+    return(c(input$fromYr, input$toYr))
   )
   
   ##------------MUTATE HDB DATA ACCORDING TO HOW USER DEF VARS-------------------
   hdb_withVars <- reactive({
     ##THIS IS PLACEHOLDER CODE; EDIT ACCORDINGLY
-    temp <- hdb_filtered()
-    
+    years <- hdb_filtered()
+    temp <- filter(hdb, hdb$YEAR %in% c(years[1]:years[2]))
     #SOME MUTATION HERE
     
-    st_write(temp, "data/temp.csv", layer_options = "GEOMETRY=AS_XY", delete_layer = TRUE)
+    st_write(temp, "data/temp.csv", layer_options = "GEOMETRY=AS_XY", delete_dsn = TRUE)
     cat("FILE WRITTEN")
     temp
   })
@@ -143,7 +141,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$hdbWithVarsDT <- renderDataTable(
-    {datatable({masterData},
+    {datatable({hdb_withVars()},
                class = "nowrap hover row-border",
                escape = FALSE,
                options = list(

@@ -23,7 +23,8 @@ hdb <- rename(hdb, "FLAT_TYPE" = "FLAT_TY",
               "REMAINING_LEASE" = "REMAINI",
               "RESALE_PRICE" = "RESALE_",
               "STOREY_MEDIAN" = "STOREY_M",
-              "FULL_ADDRESS" = "FULL_AD")
+              "FULL_ADDRESS" = "FULL_AD") %>%
+  select("RESALE_PRICE", everything())
 ##-------------------------------------------------------MPSUBZONE----------------------------------------------
 mpsz <- st_read("data/spatial", layer = "MP14_SUBZONE_WEB_PL", crs = 3414)
 ##-------------------------------------------------------RAFFLES PLACE PARK-------------------------------------
