@@ -139,7 +139,7 @@ shinyServer(function(input, output, session) {
     temp <- hdb_withVars()
     staged_data$value <- temp %>% st_drop_geometry()
     staged_data$geom <- temp$geometry
-    cat("FILE RE-READ")
+    # cat("FILE RE-READ")
   })
   
   output$hdbWithVarsDT <- renderDataTable(
@@ -168,7 +168,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$refreshData, ignoreNULL = FALSE, {
     staged_data_transformed$value <- staged_data$value
-    cat("CHANGED")
+    # cat("CHANGED")
     transform_variable_list$value <- data_frame(
       `Variable List` = colnames(staged_data$value)[!(colnames(staged_data$value) %in% nonlmVars)],
       `Transform Status` = rep("None", ncol(staged_data$value)-10)
@@ -181,9 +181,12 @@ shinyServer(function(input, output, session) {
   output$transformationTable <- renderDataTable({
     
     cbind(transform_variable_list$value,
-          data.frame(Actions = shinyInput(actionButton, nrow(transform_variable_list$value),
+          data_frame(Actions = shinyInput(actionButton, nrow(transform_variable_list$value),
                                           'button_', label = "Plot Histogram",
-                                          onclick = 'Shiny.onInputChange(\"plothist_button\",  this.id)'))
+                                          onclick = 'Shiny.onInputChange(\"plothist_button\",  this.id)',
+                                          icon("chart-bar"), 
+                                          style="color: #fff; background-color: #068587")
+                     )
     ) %>%
       datatable(
         class = "nowrap hover row-border",
@@ -289,17 +292,22 @@ shinyServer(function(input, output, session) {
   
   gwrAllVariable_DisplayList <- data_frame()
   gwrSelectedVariable_DisplayList <- data_frame()
+  gwrGlobalVariable_DisplayList <- data_frame()
   
-  
+  #RENDER ALL VARS DATA TABLE - TO INCLUDE GLOBAL/LOCAL BUTTONS
   output$gwrAllVariables <- renderDataTable({
     gwrAllVariable_DisplayList <<- corr_variable_list$value %>% filter(includeexclude == 0) %>% dplyr::select(-includeexclude)
     
     plotData <- cbind(gwrAllVariable_DisplayList,
-                      data.frame(Actions = shinyInput(  actionButton, nrow(gwrAllVariable_DisplayList),
-                                                        'button_', label = "Include",
-                                                        onclick = 'Shiny.onInputChange(\"include_button\",  this.id)'))
+                      data.frame(Local = shinyInput(actionButton, nrow(gwrAllVariable_DisplayList), #c() of actions buttons?                                                        
+                                                      'button_', label = "Local",
+                                                      onclick = 'Shiny.onInputChange(\"include_button\",  this.id)'),
+                                 Global = shinyInput(actionButton, nrow(gwrAllVariable_DisplayList),
+                                            'button_', label = "Global",
+                                            onclick = 'Shiny.onInputChange(\"global_button\",  this.id)')
+                      )
     ) 
-    colnames(plotData) <- c("Variable List", "Actions")
+    colnames(plotData) <- c("Variable List", "Local", "Global")
     
     plotData  %>%
       datatable(
@@ -313,6 +321,7 @@ shinyServer(function(input, output, session) {
       )
   })
   
+  #RENDER SELECTED/LOCAL VARS TABLE
   output$gwrSelectedVariables <- renderDataTable({
     gwrSelectedVariable_DisplayList <<- corr_variable_list$value %>% filter(includeexclude == 1) %>% dplyr::select(-includeexclude)
     
@@ -335,8 +344,34 @@ shinyServer(function(input, output, session) {
       )
   })
   
+  ######################################
+  ##REQUIRE A RENDER GLOBAL VARS TABLE##
+  ######################################
+  output$gwrSelGlobVariables <- renderDataTable({
+    gwrGlobalVariable_DisplayList <<- corr_variable_list$value %>% filter(includeexclude == 2) %>% dplyr::select(-includeexclude)
+    
+    plotData2 <- cbind(gwrGlobalVariable_DisplayList,
+                       data.frame(Actions = shinyInput(  actionButton, nrow(gwrGlobalVariable_DisplayList),
+                                                         'button_', label = "Exclude",
+                                                         onclick = 'Shiny.onInputChange(\"exclude_button\",  this.id)'))
+    )
+    colnames(plotData2) <- c("Variable List", "Actions")
+    
+    plotData2  %>%
+      datatable(
+        class = "nowrap hover row-border",
+        escape = FALSE,
+        options = list(
+          dom = 'tip',
+          scrollY = TRUE,
+          server = FALSE
+        )
+      )
+  })
   
   
+  
+  #ACTIONS FOR LOCAL BUTTON
   observeEvent(input$include_button, {
     selectedRow <- as.numeric(strsplit(input$include_button, "_")[[1]][2])
     
@@ -347,17 +382,30 @@ shinyServer(function(input, output, session) {
     
   })
   
+  #ACTIONS FOR GLOBAL BUTTON
+  observeEvent(input$global_button, {
+    selectedRow <- as.numeric(strsplit(input$global_button, "_")[[1]][2])
+    
+    corr_variable_list$value <- corr_variable_list$value %>%
+      mutate(includeexclude = ifelse(var_list == gwrAllVariable_DisplayList[selectedRow,1], 2, includeexclude))
+    
+    session$sendCustomMessage(type = 'resetInputValue', message =  "global_button")
+    
+  })
+  
+  #ACTIONS FOR EXCLUDE BUTTON
   observeEvent(input$exclude_button, {
     selectedRow <- as.numeric(strsplit(input$exclude_button, "_")[[1]][2])
     
     corr_variable_list$value <- corr_variable_list$value %>%
       mutate(includeexclude = ifelse(var_list == gwrSelectedVariable_DisplayList[selectedRow,1] &
-                                       !str_detect(var_list, "YIELD"), 0, includeexclude))
+                                       !str_detect(var_list, "RESALE"), 0, includeexclude))
     
     session$sendCustomMessage(type = 'resetInputValue', message =  "exclude_button")
     
   })
   
+  #CORRELATION PLOT
   correlationPlotData <- reactiveValues(data = data_frame())
   observeEvent(input$corrBtn, {
     if(nrow(gwrSelectedVariable_DisplayList) > 1) {
@@ -372,6 +420,8 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  
+  #######
+  ##GWR##
+  #######
   
 })
