@@ -113,37 +113,54 @@ shinyServer(function(input, output, session) {
   output$values <- renderTable({preloaded_data()})
   
   ##------------FILTER HDB DATA BY YEAR------------------------------------------
+  ##UPDATES CHOICES IN DROPDOWN LIST TO PREVENT ERROR
+  observeEvent(input$fromMth,
+               {
+                 if(input$fromYr == input$toYr){
+                   updateSelectInput(session, "toMth", choices = c(input$fromMth:12), selected = 12)
+                 }
+               })
+  
   hdb_filtered <- reactive(
-    return(c(input$fromYr, input$toYr))
+    return(c(input$fromMth, input$toMth, input$fromYr, input$toYr))
   )
   
   ##------------MUTATE HDB DATA ACCORDING TO HOW USER DEF VARS-------------------
   hdb_withVars <- reactive({
     ##THIS IS PLACEHOLDER CODE; EDIT ACCORDINGLY
-    years <- hdb_filtered()
-    temp <- filter(hdb, hdb$YEAR %in% c(years[1]:years[2]))
+    timePeriod <- hdb_filtered()
+    if(timePeriod[3] == timePeriod[4]){
+      temp <- filter(hdb, hdb$YEAR %in% c(timePeriod[3]:timePeriod[4])) %>%
+        filter(as.numeric(.$MONTH) %in% c(timePeriod[1]:timePeriod[2]))
+    } else {
+      temp <- filter(hdb, hdb$YEAR %in% c(timePeriod[3]:timePeriod[4]))
+      temp <- filter(temp, !as.numeric(temp$MONTH) %in% c(0:timePeriod[1]-1) | temp$YEAR != timePeriod[3]) %>%
+        filter(!as.numeric(.$MONTH) %in% c(timePeriod[2]:13) | .$YEAR != timePeriod[4])
+    }
+    result <- temp [sample(nrow(temp), input$sampleNum), ]
+    
+    #TEMP IS NOT IN SF or SP FORM. must alter accordingly to calculate variables >> geom columns are "X" and "Y"
     
     ###################
     #SOME MUTATION HERE
     ###################
     
-    # st_write(temp, "data/temp.csv", layer_options = "GEOMETRY=AS_XY", delete_dsn = TRUE)
-    # cat("FILE WRITTEN")
-    temp
+    result
   })
   
   ##------------RENDER HDB DATA--------------------------------------------------
-  staged_data <- reactiveValues(value = hdb %>% st_drop_geometry(), geom = hdb$geometry)
-  
+  staged_data <- reactiveValues(value = hdb,
+                                geom = st_as_sf(hdb, coords = c("X", "Y"), crs = "+init=epsg:3414") %>% .$geometry)
+                                #GEOM is just to store geometry column for 
   observeEvent({input$refreshData | input$yrFilterBtn | input$calcVar}, {
     temp <- hdb_withVars()
-    staged_data$value <- temp %>% st_drop_geometry()
-    staged_data$geom <- temp$geometry
-    # cat("FILE RE-READ")
+    staged_data$value <- temp
+    staged_data$geom <- st_as_sf(staged_data$value, coords = c("X", "Y"), crs = "+init=epsg:3414") %>% .$geometry
+
   })
   
   output$hdbWithVarsDT <- renderDataTable(
-    {datatable({cbind(staged_data$value, staged_data$geom)},
+    {datatable({staged_data$value},
                class = "nowrap hover row-border",
                escape = FALSE,
                options = list(
@@ -171,7 +188,7 @@ shinyServer(function(input, output, session) {
     # cat("CHANGED")
     transform_variable_list$value <- data_frame(
       `Variable List` = colnames(staged_data$value)[!(colnames(staged_data$value) %in% nonlmVars)],
-      `Transform Status` = rep("None", ncol(staged_data$value)-10)
+      `Transform Status` = rep("None", ncol(staged_data$value)-12)
     )
     
     updateSelectInput(session, inputId = "variableTrf_gwr", label = "Select Variable to Transform",
@@ -259,7 +276,7 @@ shinyServer(function(input, output, session) {
     
     output$varhistPlot <- renderPlot({
       ggplot(data=staged_data_transformed$value, aes(x= UQ(rlang::sym(paste0(selectedTrf, selectedVar))))) +
-        geom_histogram(bins = 20, fill = "#0000ff", colour = "grey60") +
+        geom_histogram(bins = 20, fill = "#068587", colour = "white") +
         theme(axis.text = element_text(size = 14),
               axis.title = element_text(size = 16, face = 'bold')) +
         ylab("")
@@ -420,8 +437,277 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  #######
-  ##GWR##
-  #######
+  ##########################################
+  ##################GWR#####################
+  ##########################################
+  
+  observeEvent(input$gwrPrev, {
+    updateTabsetPanel(session, "gwrTabSet",
+                      selected = "gwrstep3")
+  })
+  
+  gwrResultTable <- data_frame()
+  gwrResultTable_reactive <- reactiveValues(value = data_frame())
+  filedownload_name <- ""
+  disable("downloadGWRResult")
+  
+  observeEvent(input$autobandwidth, {
+    if (input$autobandwidth)
+      disable('bandwidth_field')
+    else
+      enable('bandwidth_field')
+    
+  })
+  
+  
+  observeEvent(input$btnRunModel, {
+    
+    staging_data_spdf <- as_Spatial(staged_data_transformed$value %>% st_as_sf(coords = c("X", "Y"), crs = 3414))
+    
+    errorMessage <- ""
+    tryCatch(
+      {
+        variableSelect <- as.character(gwrSelectedVariable_DisplayList[,'var_list'])
+        targetVar <- variableSelect[str_detect(variableSelect, "RESALE")]
+        variableSelect <- variableSelect[!str_detect(variableSelect, "RESALE")]
+        
+        # if the only variable left in the selection box is the target, the following statement will give an error
+        target <- paste0(targetVar, " ~ ")
+        formula <- paste0(variableSelect[1:(length(variableSelect)-1)], " + ", collapse = '')
+        formula <- paste0(target, formula, variableSelect[length(variableSelect)], collapse = '')
+        cat(formula)
+      }, warning = function(war) {
+        errorMessage <<- "WARNING"
+      }, error = function(err) {
+        errorMessage <<- "ERROR"
+      }
+    )
+    
+    if(errorMessage != "" ){
+      #print(errorMessage)
+      showNotification("Please insert independent variable(s) before running the model!", type = "error")
+      return()
+    }
+    
+    
+    if (input$autobandwidth) {
+      bandwidth <- bw.gwr(as.formula(formula),
+                          data = staging_data_spdf,
+                          approach = 'CV',
+                          kernel = input$kernel_select,
+                          adaptive = input$adaptivekernel,
+                          longlat = FALSE
+      )
+    } else {
+      bandwidth <- as.numeric(input$bandwidth_field)
+    }
+    
+    errorMessage <- ""
+    tryCatch({
+      gwrModelResult <- gwr.basic(as.formula(formula),
+                                  data = staging_data_spdf, bw=bandwidth, kernel = input$kernel_select,
+                                  adaptive = input$adaptivekernel, longlat=FALSE)
+    }, error = function(err) {
+      errorMessage  <<- "ERROR"
+    })
+    
+    if (errorMessage != "") {
+      showNotification("Please Input Appropriate Bandwidth!", type = "error")
+      return()
+    }
+    
+    
+    gwrLocalResult <- as.data.frame(gwrModelResult$SDF)
+    
+    
+    gwrResultTable <- staged_data_transformed$value[,c(nonlmVars, targetVar, variableSelect)]
+    gwrResultTable[,"yhat"] <- gwrLocalResult[,"yhat"]
+    
+    gwrResultTable[,"Intercept"] <- gwrLocalResult[,"Intercept"]
+    gwrResultTable[,"Intercept_TV"] <- gwrLocalResult[,"Intercept_TV"]
+    
+    for (dim_ in variableSelect) {
+      gwrResultTable[, paste0(dim_, "_Coef")] <- gwrLocalResult[, dim_]
+      gwrResultTable[, paste0(dim_, "_TV")] <-
+        gwrLocalResult[, paste0(dim_, "_TV")]
+      
+      gwrResultTable[, paste0(dim_, "_PV")] <- 
+        (1- pt(abs(gwrLocalResult[, paste0(dim_, "_TV")]), df = nrow(gwrLocalResult)-1)) * 2
+      
+    }
+    
+    year <- paste0(input$fromYr, "_to_", input$toYr)
+    output$showYear <- renderText({
+      year
+    })
+    
+    ymean <-  mean(as.numeric(unlist(gwrResultTable[,targetVar])))
+    y <- as.numeric(unlist(gwrResultTable[,targetVar]))
+    ssr <- sqrt(sum((gwrResultTable$yhat - ymean) ** 2))
+    sst <- sqrt(sum((ymean - y) ** 2))
+    output$showRSquare <- renderText({
+      paste0(as.character(round((ssr/sst),3)*100), "%")
+    })
+    
+    updateSelectInput(session, inputId="paramPlot_select", label="Select Variable to Plot",
+                      choices = c("Fitted Resale Price"="yhat", variableSelect))
+    
+    gwrResultTable_reactive$value <- gwrResultTable
+    enable("downloadGWRResult") # enable for download
+    
+    filedownload_name <<- paste0(variableSelect, collapse = '')
+    filedownload_name <<- paste0("GWR_", year, "_", targetVar, "_", filedownload_name, collapse = '')
+    
+    # global regression output
+    output$globalRegressionOutput <- renderPrint({
+      summary(gwrModelResult$lm)
+    })
+  })
+  
+  
+  output$gwrResultDataTable <- renderDataTable({
+    
+    gwrResultTable_reactive$value %>%
+      datatable(
+        class = "nowrap hover row-border",
+        escape = FALSE,
+        options = list(
+          dom = 'ftip',
+          scrollX = TRUE,
+          server = FALSE
+        )
+      )
+  })
+  
+  output$downloadGWRResult <- downloadHandler(
+    filename = function() {
+      paste(filedownload_name, ".csv", sep="")
+    },
+    content = function(file) {
+      write_csv(gwrResultTable_reactive$value, file)
+    }
+  )
+  
+  # Map Drawing Exercise
+  shapeData_reactives <- reactiveValues()
+  
+  observe({
+    if (nrow(gwrResultTable_reactive$value) == 0) {
+      shapeData_reactives$value = 0
+      return()
+    }
+    #Prepare plot data for isoline map
+    
+    isoline_sf = st_as_sf(gwrResultTable_reactive$value,
+                          coords = c("X", "Y")) %>% st_set_crs(4326)
+    
+    #Chage plot data into spatial data format
+    plot_data_sp = as(isoline_sf, "Spatial")
+    
+    #Replacing point boundary extent with that of polygon
+    plot_data_sp@bbox = mpsz_sp@bbox
+    
+    ##Create an empty grid
+    grd              <- as.data.frame(spsample(plot_data_sp, "regular", n=50000))
+    names(grd)       <- c("X", "Y")
+    coordinates(grd) <- c("X", "Y")
+    gridded(grd)     <- TRUE  # Create SpatialPixel object
+    fullgrid(grd)    <- TRUE  # Create SpatialGrid object
+    
+    #Add P's projection information to the empty grid
+    proj4string(grd) = proj4string(mpsz_sp)
+    
+    shapeData_reactives$plot_data_sp <- plot_data_sp
+    shapeData_reactives$grd <- grd
+    
+    
+    shapeData_reactives$value = 1
+  })
+  
+  
+  output$parameterMap <- renderLeaflet({
+    tryCatch( {
+      if (shapeData_reactives$value == 0) {
+        return()
+      }
+      
+      variableSelected <- input$paramPlot_select
+      if(variableSelected != "yhat")
+        variableSelected <- paste0(variableSelected, "_Coef")
+      
+      #Interpolate the grid cells using a power value of 2 (idp=2.0)
+      plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), shapeData_reactives$plot_data_sp, newdata=shapeData_reactives$grd, idp=2)
+      
+      # Convert to raster object then clip to Polygon
+      r       <- raster(plot_idw)
+      r.m     <- mask(r, mpsz_sp)
+      
+      tmap_mode("view")
+      
+      ##setting up colour palette
+      if (min(gwrResultTable_reactive$value %>% dplyr::select(UQ(sym(variableSelected)))) < 0)
+        colorPalette <- "RdBu"
+      else
+        colorPalette <- "Blues"
+      
+      isoline_title <- variableSelected
+      if(isoline_title != "yhat")
+        isoline_title <- paste0(input$paramPlot_select, "'s Local Coefficient")
+      
+      param_Plot <-
+        tm_shape(r.m, paste0(isoline_title, "'s Isoline Raster")) +
+        tm_raster(n=as.integer(10),palette = colorPalette, title=isoline_title) +
+        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
+        tm_shape(shapeData_reactives$plot_data_sp, paste0(isoline_title, "'s Obs Dots")) + 
+        tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+                id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
+        tm_legend(legend.outside=TRUE)+
+        tm_view(set.zoom.limits = c(4,8),text.size.variable = TRUE)
+      
+      tmap_leaflet(param_Plot)
+    }, error = function(err) {
+      
+    })
+  })
+  
+  output$significanceMap <- renderLeaflet({
+    tryCatch( {
+      if (shapeData_reactives$value == 0) {
+        return()
+      }
+      
+      variableSelected <- input$paramPlot_select
+      if(variableSelected != "yhat")
+        variableSelected <- paste0(variableSelected, "_PV")
+      else
+        return()
+      
+      #Interpolate the grid cells using a power value of 2 (idp=2.0)
+      plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), shapeData_reactives$plot_data_sp, newdata=shapeData_reactives$grd, idp=2)
+      
+      # Convert to raster object then clip to Polygon
+      r       <- raster(plot_idw)
+      r.m     <- mask(r, mpsz_sp)
+      
+      tmap_mode("view")
+      
+      ##setting up colour palette
+      colorPalette <- "-Blues"
+      
+      
+      param_Plot <-
+        tm_shape(r.m, paste0(input$paramPlot_select, "'s PV Isoline Raster")) +
+        tm_raster(n=as.integer(10),palette = colorPalette, title=paste0(input$paramPlot_select, "'s P-Value")) +
+        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
+        tm_shape(shapeData_reactives$plot_data_sp, paste0(input$paramPlot_select, "'s PV Obs Dots")) + 
+        tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+                id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
+        tm_legend(legend.outside=TRUE)+
+        tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE)
+      
+      tmap_leaflet(param_Plot)
+    }, error = function(err) {
+    })
+  })
   
 })

@@ -121,16 +121,26 @@ shinyUI(
                   tabPanel("Define Variables", fluid = TRUE,
                            fluidPage(
                              box(width = 12,
-                               h5(strong("Filter HDB Resale Data by Year:")),
-                               h5("View filtered results in next tab. Default filtered to 2018 data."),
+                               h5(strong("Sample HDB Resale Data by Time Period:")),
+                               h5("View sample results in next tab. Default 200 sampled from 2018 data."),
+                               h5("Note: The higher the sample count, the longer it will take for the GWR Model to run."),
                                fluidRow(
-                                 column(4,
-                                        selectInput("fromYr", "From:", c(2015, 2016, 2017, 2018), selected = 2018)
+                                 column(2,
+                                        selectInput("fromMth", "From: (Month)", c(1:12), selected = 1)
+                                        ),
+                                 column(2,
+                                        selectInput("fromYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                  ),
-                                 column(4,
-                                        selectInput("toYr", "To:", c(2015, 2016, 2017, 2018), selected = 2018)
+                                 column(2,
+                                        selectInput("toMth", "To: (Month_", c(1:12), selected = 12)
+                                        ),
+                                 column(2,
+                                        selectInput("toYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                  ),
-                                 column(4,
+                                 column(2,
+                                        selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500), selected = 300)
+                                        ),
+                                 column(2,
                                         actionButton("yrFilterBtn", "Filter", icon("filter"), 
                                                      style="color: #fff; background-color: #068587")
                                  )
