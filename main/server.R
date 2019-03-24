@@ -564,7 +564,7 @@ shinyServer(function(input, output, session) {
     })
     
     updateSelectInput(session, inputId="paramPlot_select", label="Select Variable to Plot",
-                      choices = c("Fitted Resale Price"="yhat", variableSelect))
+                      choices = c("Fitted Resale Price"="yhat", variableSelect, globalvariableSelect))
     
     gwrResultTable_reactive$value <- gwrResultTable
     enable("downloadGWRResult") # enable for download
@@ -629,7 +629,7 @@ shinyServer(function(input, output, session) {
     plot_data_sp@bbox = mpsz_sp@bbox
     
     ##Create an empty grid
-    grd              <- as.data.frame(spsample(plot_data_sp, "regular", n=5000))
+    grd              <- as.data.frame(spsample(plot_data_sp, "regular", n=10000))
     names(grd)       <- c("X", "Y")
     coordinates(grd) <- c("X", "Y")
     gridded(grd)     <- TRUE  # Create SpatialPixel object
@@ -677,12 +677,12 @@ shinyServer(function(input, output, session) {
       
       param_Plot <-
         tm_shape(r.m, paste0(isoline_title, "'s Isoline Raster")) +
-        tm_raster(n=as.integer(10),palette = colorPalette, title=isoline_title) +
-        # tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
-        # tm_shape(shapeData_reactives$plot_data_sp, paste0(isoline_title, "'s Obs Dots")) + 
-        # tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
-                # id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
-        # tm_legend(legend.outside=TRUE)+
+        tm_raster(n=4,palette = colorPalette, title=isoline_title, style = "pretty") +
+        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8) + tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6)+
+        tm_shape(shapeData_reactives$plot_data_sp, paste0(isoline_title, "'s Obs Dots")) +
+        tm_dots(n=4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+                id='FULL_ADRESS',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
+        tm_legend(legend.outside=TRUE)+
         tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE)
       
       tmap_leaflet(param_Plot)
@@ -721,12 +721,12 @@ shinyServer(function(input, output, session) {
       
       param_Plot <-
         tm_shape(r.m, paste0(input$paramPlot_select, "'s PV Isoline Raster")) +
-        tm_raster(n=as.integer(10),palette = colorPalette, title=paste0(input$paramPlot_select, "'s P-Value")) +
-        # tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
-        # tm_shape(shapeData_reactives$plot_data_sp, paste0(input$paramPlot_select, "'s PV Obs Dots")) + 
-        # tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
-        #         id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
-        # tm_legend(legend.outside=TRUE)+
+        tm_raster(n=4,palette = colorPalette, title=paste0(input$paramPlot_select, "'s P-Value"), style = "pretty") +
+        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6)+
+        tm_shape(shapeData_reactives$plot_data_sp, paste0(input$paramPlot_select, "'s PV Obs Dots")) +
+        tm_dots(n=4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+                id='FULL_ADDRESS',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
+        tm_legend(legend.outside=TRUE)+
         tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE)
       
       tmap_leaflet(param_Plot)
