@@ -23,6 +23,19 @@ shinyUI(
       )
     ),
     dashboardBody(
+      tags$head(
+        tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+      ),
+      fluidPage(
+        theme = shinytheme("united"),
+        shinyjs::useShinyjs(),
+        #js function to reset a button, variableName is the button name whose value we want to reset
+        tags$script(
+          "Shiny.addCustomMessageHandler('resetInputValue', function(variableName){
+          Shiny.onInputChange(variableName, null);
+          });
+          "
+      )),
       tabItems(
   ##-------------------------------------------Tab of Overview-----------------------------------------------------
         tabItem(tabName = "overview",
@@ -106,9 +119,9 @@ shinyUI(
                                    style = 'overflow-x: scroll',
                                   uiOutput("featTitle"),
                                  dataTableOutput('userdata') %>%
-                                   withSpinner(type = 4),
+                                   withSpinner(type = 4, color = "#099090"),
                                  leafletOutput(outputId = "userMap") %>%
-                                   withSpinner(type = 4)
+                                   withSpinner(type = 4, color = "#099090")
                                  )
                                ),
                                # tableOutput("values")
@@ -138,7 +151,7 @@ shinyUI(
                                         selectInput("toYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                  ),
                                  column(2,
-                                        selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500), selected = 300)
+                                        selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500), selected = 200)
                                         ),
                                  column(2,
                                         actionButton("yrFilterBtn", "Filter", icon("filter"), 
@@ -203,7 +216,7 @@ shinyUI(
                   tabPanel("View Data", fluid = TRUE,
                           fluidPage(
                             dataTableOutput('hdbWithVarsDT') %>%
-                              withSpinner(type = 4)
+                              withSpinner(type = 4, color = "#099090")
                           )
                   ),
                   tabPanel("Transform Variables", fluid = TRUE, value = 'gwrstep4',
@@ -254,8 +267,7 @@ shinyUI(
                              column(1),
                              column(
                                10,
-                               dataTableOutput("transformationTable") %>% withSpinner(type =
-                                                                                        4)
+                               dataTableOutput("transformationTable") %>% withSpinner(type = 4, color = "#099090")
                              ),
                              column(1)
                            )
@@ -276,7 +288,7 @@ shinyUI(
                              sidebarPanel(width = 6,
                                           title = "Independent Variables Pool",
                                           status = 'primary',
-                                          dataTableOutput("gwrAllVariables") %>% withSpinner(type = 4)
+                                          dataTableOutput("gwrAllVariables") %>% withSpinner(type = 4, color = "#099090")
                                           ),
                              mainPanel(width = 6,
                                        fluidRow(
@@ -284,14 +296,14 @@ shinyUI(
                                          title = "Selected Local Variable(s) for GWR",
                                          width = 12,
                                          status = 'primary',
-                                         dataTableOutput("gwrSelectedVariables") %>% withSpinner(type = 4)
+                                         dataTableOutput("gwrSelectedVariables") %>% withSpinner(type = 4, color = "#099090")
                                        )),
                                        fluidRow(
                                        box(
                                          title = "Selected Global Variable(s) for GWR",
                                          width = 12,
                                          status = 'primary',
-                                         dataTableOutput("gwrSelGlobVariables") %>% withSpinner(type = 4)
+                                         dataTableOutput("gwrSelGlobVariables") %>% withSpinner(type = 4, color = "#099090")
                                        ),
                                        actionButton(inputId = "corrBtn", label = "Show Correlations"))
                              )
@@ -299,6 +311,8 @@ shinyUI(
                   ),
                   tabPanel("Run GWR", fluid = TRUE,
                            tags$br(),
+                           h5("Both Non-Mixed and Mixed GWR Models will be run."),
+                           h5(strong("Note: Both Local and Global variables will be included in the Non-Mixed GWR Formula.")),
                            fluidRow(
                              column(4,
                                     fluidRow(
@@ -355,7 +369,9 @@ shinyUI(
                                     )),
                              column(
                                4,
-                               actionButton("btnRunModel", label = "Run Model", width = '150px')
+                               actionButton("btnRunModel", label = "Run Models", icon("calculator"), width = '150px',
+                                            style="color: #fff; background-color: #068587"),
+                               h5(strong("Please allow some time for results to be calculated."))
                              )
                            ),
                            
@@ -378,7 +394,7 @@ shinyUI(
                                    3,
                                    HTML(
                                      '<div class="info-box-content">
-                                     <span class="info-box-text">Now Showing YEAR: </span>
+                                     <span class="info-box-text">YEAR: </span>
                                      <span class="info-box-number">
                                      <div id="showYear" class="shiny-text-output"></div>
                                      </span>
@@ -401,14 +417,12 @@ shinyUI(
                                    ),
                                fluidRow(
                                  column(6,
-                                        leafletOutput("parameterMap") %>% withSpinner(type =
-                                                                                        4)),
+                                        leafletOutput("parameterMap") %>% withSpinner(type =4, color = "#099090")),
                                  column(6,
-                                        leafletOutput("significanceMap") %>% withSpinner(type =
-                                                                                           4))
+                                        leafletOutput("significanceMap") %>% withSpinner(type =4, color = "#099090"))
                                )
                                  ),
-                             tabPanel("Data Output", fluidRow(column(
+                             tabPanel("GWR Data Output", fluidRow(column(
                                12,
                                box(
                                  title = "GWR Result Table",
@@ -419,16 +433,20 @@ shinyUI(
                                  dataTableOutput("gwrResultDataTable")
                                )
                              ))),
+                             tabPanel("Mixed GWR",
+                                      tags$style(type='text/css', '#mixedGWROutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'), 
+                                      fluidRow(column(
+                                        12,
+                                        verbatimTextOutput("mixedGWROutput")
+                                      ))),
+                             
                              tabPanel("Global Regression",
+                                      tags$style(type='text/css', '#globalRegressionOutput {background-color: white; color: teal; font-family: "TW Cen MT";}'), 
                                       fluidRow(column(
                                         12,
                                         verbatimTextOutput("globalRegressionOutput")
                                       )))
-                                 ),
-                           fluidRow(column(
-                             2, actionButton("gwrPrev", "Previous Step")
-                           ),
-                           column(10))
+                                 )
                   )
                   
                 ))

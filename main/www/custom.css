@@ -1,0 +1,47 @@
+.main-header .logo {
+    font-family: "TW Cen MT";
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.skin-green .main-header .logo{
+    background-color: #068587;
+}
+
+/* logo when hovered */
+.skin-green .main-header .logo:hover {
+    background-color: #069090;
+}
+
+.skin-green .main-header .navbar{
+    background-color: #068587;
+}
+
+.skin-green .main-header .navbar .sidebar-toggle:hover{
+    background-color: #069090;
+}
+
+/* active selected tab in the sidebarmenu */
+.skin-green .main-sidebar .sidebar .sidebar-menu .active a{
+    background-color: #069090;
+}
+
+/* other links in the sidebarmenu when hovered */
+.skin-green .main-sidebar .sidebar .sidebar-menu a:hover{
+    background-color: #068587;
+}
+.box.box-solid.box-primary>.box-header{
+    background-color: #068587;
+}
+
+.box.box-primary{
+    border-top-color: #068587;
+}
+
+.bg-light-blue, .label-primary, .modal-primary .modal-body{
+    background-color: #099090!important;
+}
+
+.nav-tabs-custom>.nav-tabs>li.active{
+    border-top-color: #099090;
+}

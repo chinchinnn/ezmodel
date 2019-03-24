@@ -456,7 +456,6 @@ shinyServer(function(input, output, session) {
       disable('bandwidth_field')
     else
       enable('bandwidth_field')
-    
   })
   
   
@@ -470,12 +469,15 @@ shinyServer(function(input, output, session) {
         variableSelect <- as.character(gwrSelectedVariable_DisplayList[,'var_list'])
         targetVar <- variableSelect[str_detect(variableSelect, "RESALE")]
         variableSelect <- variableSelect[!str_detect(variableSelect, "RESALE")]
+        globalvariableSelect <- as.character(gwrGlobalVariable_DisplayList[,'var_list'])
         
         # if the only variable left in the selection box is the target, the following statement will give an error
         target <- paste0(targetVar, " ~ ")
         formula <- paste0(variableSelect[1:(length(variableSelect)-1)], " + ", collapse = '')
+        formula <- paste0(formula, globalvariableSelect[1:(length(globalvariableSelect))], sep = " + ", collapse = '')
         formula <- paste0(target, formula, variableSelect[length(variableSelect)], collapse = '')
         cat(formula)
+        cat(globalvariableSelect)
       }, warning = function(war) {
         errorMessage <<- "WARNING"
       }, error = function(err) {
@@ -507,6 +509,12 @@ shinyServer(function(input, output, session) {
       gwrModelResult <- gwr.basic(as.formula(formula),
                                   data = staging_data_spdf, bw=bandwidth, kernel = input$kernel_select,
                                   adaptive = input$adaptivekernel, longlat=FALSE)
+      
+      gwrMixedResult <- gwr.mixed(as.formula(formula),
+                                  data = staging_data_spdf,
+                                  fixed.vars = c(globalvariableSelect),
+                                  bw=bandwidth, kernel = input$kernel_select,
+                                  adaptive = input$adaptivekernel, longlat=FALSE)
     }, error = function(err) {
       errorMessage  <<- "ERROR"
     })
@@ -516,9 +524,7 @@ shinyServer(function(input, output, session) {
       return()
     }
     
-    
     gwrLocalResult <- as.data.frame(gwrModelResult$SDF)
-    
     
     gwrResultTable <- staged_data_transformed$value[,c(nonlmVars, targetVar, variableSelect)]
     gwrResultTable[,"yhat"] <- gwrLocalResult[,"yhat"]
@@ -528,10 +534,18 @@ shinyServer(function(input, output, session) {
     
     for (dim_ in variableSelect) {
       gwrResultTable[, paste0(dim_, "_Coef")] <- gwrLocalResult[, dim_]
-      gwrResultTable[, paste0(dim_, "_TV")] <-
-        gwrLocalResult[, paste0(dim_, "_TV")]
+      gwrResultTable[, paste0(dim_, "_TV")] <- gwrLocalResult[, paste0(dim_, "_TV")]
       
-      gwrResultTable[, paste0(dim_, "_PV")] <- 
+      gwrResultTable[, paste0(dim_, "_PV")] <-
+        (1- pt(abs(gwrLocalResult[, paste0(dim_, "_TV")]), df = nrow(gwrLocalResult)-1)) * 2
+      
+    }
+    
+    for (dim_ in globalvariableSelect) {
+      gwrResultTable[, paste0(dim_, "_Coef")] <- gwrLocalResult[, dim_]
+      gwrResultTable[, paste0(dim_, "_TV")] <- gwrLocalResult[, paste0(dim_, "_TV")]
+      
+      gwrResultTable[, paste0(dim_, "_PV")] <-
         (1- pt(abs(gwrLocalResult[, paste0(dim_, "_TV")]), df = nrow(gwrLocalResult)-1)) * 2
       
     }
@@ -562,6 +576,11 @@ shinyServer(function(input, output, session) {
     output$globalRegressionOutput <- renderPrint({
       summary(gwrModelResult$lm)
     })
+    
+    #GWR Mixed Output
+    output$mixedGWROutput <- renderPrint({
+      gwrMixedResult
+    })
   })
   
   
@@ -573,6 +592,8 @@ shinyServer(function(input, output, session) {
         escape = FALSE,
         options = list(
           dom = 'ftip',
+          scrollX = TRUE,
+          sScrollX = "100%",
           scrollX = TRUE,
           server = FALSE
         )
@@ -599,7 +620,7 @@ shinyServer(function(input, output, session) {
     #Prepare plot data for isoline map
     
     isoline_sf = st_as_sf(gwrResultTable_reactive$value,
-                          coords = c("X", "Y")) %>% st_set_crs(4326)
+                          coords = c("X", "Y")) %>% st_set_crs(3414)
     
     #Chage plot data into spatial data format
     plot_data_sp = as(isoline_sf, "Spatial")
@@ -608,7 +629,7 @@ shinyServer(function(input, output, session) {
     plot_data_sp@bbox = mpsz_sp@bbox
     
     ##Create an empty grid
-    grd              <- as.data.frame(spsample(plot_data_sp, "regular", n=50000))
+    grd              <- as.data.frame(spsample(plot_data_sp, "regular", n=5000))
     names(grd)       <- c("X", "Y")
     coordinates(grd) <- c("X", "Y")
     gridded(grd)     <- TRUE  # Create SpatialPixel object
@@ -657,12 +678,12 @@ shinyServer(function(input, output, session) {
       param_Plot <-
         tm_shape(r.m, paste0(isoline_title, "'s Isoline Raster")) +
         tm_raster(n=as.integer(10),palette = colorPalette, title=isoline_title) +
-        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
-        tm_shape(shapeData_reactives$plot_data_sp, paste0(isoline_title, "'s Obs Dots")) + 
-        tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
-                id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
-        tm_legend(legend.outside=TRUE)+
-        tm_view(set.zoom.limits = c(4,8),text.size.variable = TRUE)
+        # tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
+        # tm_shape(shapeData_reactives$plot_data_sp, paste0(isoline_title, "'s Obs Dots")) + 
+        # tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+                # id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
+        # tm_legend(legend.outside=TRUE)+
+        tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE)
       
       tmap_leaflet(param_Plot)
     }, error = function(err) {
@@ -683,7 +704,10 @@ shinyServer(function(input, output, session) {
         return()
       
       #Interpolate the grid cells using a power value of 2 (idp=2.0)
-      plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), shapeData_reactives$plot_data_sp, newdata=shapeData_reactives$grd, idp=2)
+      plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")),
+                             shapeData_reactives$plot_data_sp,
+                             newdata=shapeData_reactives$grd,
+                             idp=2)
       
       # Convert to raster object then clip to Polygon
       r       <- raster(plot_idw)
@@ -698,11 +722,11 @@ shinyServer(function(input, output, session) {
       param_Plot <-
         tm_shape(r.m, paste0(input$paramPlot_select, "'s PV Isoline Raster")) +
         tm_raster(n=as.integer(10),palette = colorPalette, title=paste0(input$paramPlot_select, "'s P-Value")) +
-        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
-        tm_shape(shapeData_reactives$plot_data_sp, paste0(input$paramPlot_select, "'s PV Obs Dots")) + 
-        tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
-                id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
-        tm_legend(legend.outside=TRUE)+
+        # tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("NAME",size="AREA",col="black",alpha = 0.6)+
+        # tm_shape(shapeData_reactives$plot_data_sp, paste0(input$paramPlot_select, "'s PV Obs Dots")) + 
+        # tm_dots(n=as.integer(10), size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+        #         id='RESALE_PRICE',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
+        # tm_legend(legend.outside=TRUE)+
         tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE)
       
       tmap_leaflet(param_Plot)
