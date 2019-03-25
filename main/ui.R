@@ -138,7 +138,7 @@ shinyUI(
                                         selectInput("fromYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                  ),
                                  column(2,
-                                        selectInput("toMth", "To: (Month_", c(1:12), selected = 12)
+                                        selectInput("toMth", "To: (Month)", c(1:12), selected = 12)
                                         ),
                                  column(2,
                                         selectInput("toYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
