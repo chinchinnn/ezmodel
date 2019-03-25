@@ -95,7 +95,7 @@ shinyServer(function(input, output, session) {
   
   ##testing dynamic checkgroup
   observe({
-    x <- input$preload
+    x <- preloadData
     
     # Can use character(0) to remove all choices
     if (is.null(x))
