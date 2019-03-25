@@ -437,7 +437,7 @@ shinyUI(
                                       ))),
                              
                              tabPanel("Global Regression",
-                                      tags$style(type='text/css', '#globalRegressionOutput {background-color: white; color: teal; font-family: "TW Cen MT";}'), 
+                                      tags$style(type='text/css', '#globalRegressionOutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'), 
                                       fluidRow(column(
                                         12,
                                         verbatimTextOutput("globalRegressionOutput")
