@@ -9,7 +9,7 @@
 
 # library(shiny)
 # library(shinydashboard)
-source("global.R", local = T)
+# source("global.R", local = T)
 
 # Define UI for application that draws a histogram
 shinyUI(
@@ -53,17 +53,17 @@ shinyUI(
                   tabPanel("Upload Data", fluid = TRUE,
                            sidebarLayout(
                              sidebarPanel(
-                               tags$h3("Required Fields:"),
+                               h4(strong("Required Fields:")),
                                textInput("variableName",
                                          label = "Name of Variable (Single word/separate words with underscore)",
                                          placeholder = "E.g. MY_FEATURE"),
                                textInput("epsg",
                                          label = "EPSG Code:",
                                          placeholder = "E.g. 4326 or 3414"),
-                               h3("Upload Data Here:"),
+                               h4(strong("Upload Data Here:")),
                                h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
                                h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
-                                h4(strong("Click on the Upload button below to submit.")),
+                                h4("Click on the Upload button below to submit."),
                                # Input: Select a file ----
                                fileInput("shapefile", "Upload Shapefile Here:", multiple = TRUE,
                                          accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj')),
@@ -86,18 +86,10 @@ shinyUI(
                                                           "Single Quote" = "'"),
                                               selected = '"')
                                ),
-
-                               # sliderInput("radius",
-                               #              label = "Number of Facilities within X metres:",
-                               #              value = 500,
-                               #              min = 100,
-                               #              max = 1000,
-                               #              step = 50
-                               #              ),
                                actionButton("uploadSubmit", "Upload", icon("paper-plane"), 
                                             style="color: #fff; background-color: #068587"),
                                tags$hr(),
-                               tags$h3("Choose Preloaded Data Here:"),
+                               h4(strong("Choose Preloaded Data Here:")),
                                checkboxGroupInput(
                                  inputId = "preload",
                                  label = "Include:",
@@ -109,7 +101,7 @@ shinyUI(
                                )
                                ),
                              mainPanel(
-                               
+                               br(),
                                box(
                                  title = "Your Uploaded Data Will Appear Here:",
                                  width = 12,
@@ -133,8 +125,9 @@ shinyUI(
                   ),
                   tabPanel("Define Variables", fluid = TRUE,
                            fluidPage(
+                             br(),
                              box(width = 12,
-                               h5(strong("Sample HDB Resale Data by Time Period:")),
+                               h4(strong("Sample HDB Resale Data by Time Period:")),
                                h5("View sample results in next tab. Default 200 sampled from 2018 data."),
                                h5("Note: The higher the sample count, the longer it will take for the GWR Model to run."),
                                fluidRow(
@@ -311,11 +304,14 @@ shinyUI(
                   ),
                   tabPanel("Run GWR", fluid = TRUE,
                            tags$br(),
-                           h5("Both Non-Mixed and Mixed GWR Models will be run."),
-                           h5(strong("Note: Both Local and Global variables will be included in the Non-Mixed GWR Formula.")),
+                           box(width = 12,
+                             h5("Both Non-Mixed and Mixed GWR Models will be run."),
+                             h5(strong("Note: Both Local and Global variables will be included in the Non-Mixed GWR Formula."))
+                           ),
                            fluidRow(
                              column(4,
                                     fluidRow(
+                                      column(1),
                                       column(
                                         4,
                                         textInput('bandwidth_field', label = "Insert your bandwidth:")
@@ -330,7 +326,7 @@ shinyUI(
                                           status = 'primary'
                                         )
                                       ),
-                                      column(2)
+                                      column(1)
                                     )),
                              column(4,
                                     fluidRow(

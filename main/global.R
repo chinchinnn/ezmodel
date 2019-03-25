@@ -1,16 +1,42 @@
 #Import Required Packages
-packages = c('shiny','shinydashboard', 'shinyWidgets', 'shinycssloaders','shinythemes', 'shinyjs', 'shinyBS',
-             'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
+packages = c('shiny', 'shinydashboard', 'shinyWidgets', 'shinycssloaders', 'shinythemes', 'shinyjs', 
+             'shinyBS', 'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
              'geofacet', 'ggmap', 'dendextend', 'heatmaply','tmap','leaflet',
              'DT', 'GWmodel', 'nngeo',
              'corrplot', 'rlang')
-for (p in packages){
-  if (!require(p, character.only = T)) {
-    install.packages(p)
-  }  
-  library(p,character.only = T)
-}
-
+# for (p in packages){
+  # if (!require(p, character.only = T)) {
+  #   install.packages(p)
+  # }
+#   library(p,character.only = T)
+# }
+library('shiny')
+library('tidyverse')
+library('sp')
+library('maps')
+library('maptools')
+library('gstat')
+library('rgeos')
+library('sf')
+library('raster')
+library('rgdal')
+library('geofacet')
+library('ggmap')
+library('dendextend')
+library('heatmaply')
+library('tmap')
+library('leaflet')
+library('DT')
+library('GWmodel')
+library('nngeo')
+library('corrplot')
+library('rlang')
+library('shinydashboard')
+library('shinyWidgets')
+library('shinycssloaders')
+library('shinythemes')
+library('shinyjs')
+library('shinyBS')
 #Load Preloaded Data
 ##-------------------------------------------------------HDB RESALE DATA----------------------------------------
 hdb <- read_csv("data/HDB_DATA.csv") %>%

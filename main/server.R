@@ -8,7 +8,7 @@
 #
 
 # library(shiny)
-source("global.R", local = T)
+# source("global.R", local = T)
 
 shinyServer(function(input, output, session) {
   ##-----------------------------OVERVIEW TEXT-------------------------------------------------
