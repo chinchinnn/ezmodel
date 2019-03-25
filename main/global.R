@@ -71,8 +71,7 @@ secsch <- sch %>%
   st_as_sf(coords = c("X", "Y"), crs = "+init=epsg:4326") %>%
   st_transform(crs = 3414)
 
-preloadData <- c("Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
-                 "Food Centres", "Parks", "Sports Facilities")
+
 
 ##END OF LOADING PRELOADED DATA
 

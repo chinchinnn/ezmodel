@@ -16,8 +16,12 @@ shinyServer(function(input, output, session) {
     "<h1>Project Overview:</h1><br>User-customised Geographically Weighted Regression Model for HDB Resale Prices Data."
   )
   
+  ##--------------Reactive values object for storing all datasets--------------------------------------------
+  datasets <- reactiveValues()
+  
   ##---------UPLOAD TAB----------Use myData() to access user-uploaded sf data------------------
   featureTitle <- eventReactive(input$uploadSubmit, {input$variableName})
+  
   
   output$featTitle <- renderUI({h3(featureTitle())})
   
@@ -50,11 +54,23 @@ shinyServer(function(input, output, session) {
       if(input$epsg != 3414){
         temp <- st_transform(temp, 3414)
       }
+
+      datasets[[input$variableName]] <- temp
       temp #RETURN
     } else {
       return(NULL)
     }
+
+    
   }, ignoreNULL = FALSE)
+  
+  # observeEvent({input$variableName,
+  #   
+  #   
+  #   if (!is.null(input$variableName))
+  #     datasets$input$variableName <- 3
+  # })
+  
   ##---------UPLOAD TAB----------Render myData() into dataTable------------------
   output$userdata <- DT::renderDataTable(
     DT::datatable(myData(),
@@ -89,23 +105,35 @@ shinyServer(function(input, output, session) {
   ##---------PRELOADED DATA----------Use myData() to access user-uploaded sf data------------------
   preloaded_data <- reactive({
     input$preload
-    
-    
   })
+
+  ##---------POPULATING REACTIVE VALUES OBJECT WITH PRELOADED DATA------------------
   
-  ##testing dynamic checkgroup
+  
+  datasets$"CBD - Raffles Place Park" <- rpp
+  datasets$"MRT/LRT Stations" <- mrt
+  datasets$"Preschools" <- presch
+  datasets$"Primary Schools" <- prisch
+  datasets$"Secondary Schools" <- secsch
+  datasets$"Food Centres" <- foodctr
+  datasets$"Parks" <- park
+  datasets$"Sports Facilities" <- sport
+  
+  
+  
+  ##---------POPULATING DYNAMIC INPUT CHECKBOX------------------
   observe({
-    x <- preloadData
-    
+    data_choices <- names(reactiveValuesToList(datasets))
+
     # Can use character(0) to remove all choices
-    if (is.null(x))
-      x <- character(0)
+    if (is.null(data_choices))
+      data_choices <- character(0)
     
     # Can also set the label and select items
     updateCheckboxGroupInput(session, "inCheckboxGroup2",
-                             label = paste("Datasets Selected for Analysis:"),
-                             choices = x,
-                             selected = x
+                             label = paste("Include:"),
+                             choices = data_choices,
+                             selected = input$variableName
     )
   })
   

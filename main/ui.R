@@ -89,16 +89,18 @@ shinyUI(
                                actionButton("uploadSubmit", "Upload", icon("paper-plane"), 
                                             style="color: #fff; background-color: #068587"),
                                tags$hr(),
-                               h4(strong("Choose Preloaded Data Here:")),
-                               checkboxGroupInput(
-                                 inputId = "preload",
-                                 label = "Include:",
-                                 choiceNames = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
-                                                 "Food Centres (e.g. Hawker Centres)", "Parks", "Sports Facilities (e.g. Sports Complex)"),
-                                 choiceValues = c("Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
-                                                  "Food Centres", "Parks", "Sports Facilities"),
-                                 selected = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools")
-                               )
+                               h4(strong("Choose Datasets for Analysis Here:")),
+                               checkboxGroupInput("inCheckboxGroup2", "Input checkbox 2",
+                                                  c("Item A"))
+                               # checkboxGroupInput(
+                               #   inputId = "preload",
+                               #   label = "Include:",
+                               #   choiceNames = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
+                               #                   "Food Centres (e.g. Hawker Centres)", "Parks", "Sports Facilities (e.g. Sports Complex)"),
+                               #   choiceValues = c("Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
+                               #                    "Food Centres", "Parks", "Sports Facilities"),
+                               #   selected = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools")
+                               # )
                                ),
                              mainPanel(
                                br(),
@@ -115,10 +117,8 @@ shinyUI(
                                  leafletOutput(outputId = "userMap") %>%
                                    withSpinner(type = 4, color = "#099090")
                                  )
-                               ),
-                               # tableOutput("values")
-                               checkboxGroupInput("inCheckboxGroup2", "Input checkbox 2",
-                                                  c("Item A", "Item B", "Item C"))
+                               )
+                               
                               
                              )
                            )
