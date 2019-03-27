@@ -81,15 +81,14 @@ secsch <- sch %>%
 
 ##Calculate field of Distance of HDB to nearest FEATURE, Calculate count of FEATURES within X m radius
 process_variables <- function(user_hdb, var_sf, x, var_name){
-  d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE, k = 2) %>% 
+  d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE, k = 1) %>% 
     .$dist %>%
     as.vector()
   
   d2nColName <- paste0("DIST2NEAREST_", var_name)
   result <- data_frame("a" = d2n)
   result <- rename(result, UQ(rlang::sym(d2nColName)) := "a")
-  
-  withinradius <- st_nn(user_hdb, var_sf, maxdist = x, k = 999)
+  withinradius <- st_nn(user_hdb, var_sf, maxdist = x, k = length(var_sf))
   
   temp <- c()
   for (i in 1:length(withinradius)){

@@ -216,6 +216,12 @@ shinyServer(function(input, output, session) {
     temp <- hdb_withVars()
     staged_data$value <- temp
     staged_data$geom <- st_as_sf(staged_data$value, coords = c("X", "Y"), crs = "+init=epsg:3414") %>% .$geometry
+    data_choices <- input$inCheckboxGroup2
+    for(i in data_choices){
+      result <- process_variables(staged_data$geom, datasets[[i]], input[[i]], i)
+      staged_data$value <- cbind(staged_data$value, result)
+      
+    }
 
   })
   
@@ -235,10 +241,6 @@ shinyServer(function(input, output, session) {
   # test_process <- reactive(
   #   return(process_variables(staged_data$geom, datasets$"Preschools", 300, "Preschools"))
   # )
-  observeEvent(input$calcVar, {
-    process_variables(staged_data$geom, datasets$"Preschools", 300, "Preschools")
-  })
-  
   
   
   ##-----------------------TRANSFORM VARS----------------------------------------
