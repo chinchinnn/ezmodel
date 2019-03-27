@@ -173,6 +173,14 @@ shinyServer(function(input, output, session) {
     return(c(input$fromMth, input$toMth, input$fromYr, input$toYr))
   )
   
+  observeEvent(input$sampleNum,
+               {
+                 if(input$sampleNum == "All"){
+                   output$allWarning <- renderUI(HTML("<div style = 'color:red'>Warning: Calculation using all data points will result in long processing times when running the GWR model (>10min)</div>"))
+                 }
+               }
+               )
+  
   ##------------MUTATE HDB DATA ACCORDING TO HOW USER DEF VARS-------------------
   hdb_withVars <- reactive({
     ##THIS IS PLACEHOLDER CODE; EDIT ACCORDINGLY
@@ -185,7 +193,11 @@ shinyServer(function(input, output, session) {
       temp <- filter(temp, !as.numeric(temp$MONTH) %in% c(0:timePeriod[1]-1) | temp$YEAR != timePeriod[3]) %>%
         filter(!as.numeric(.$MONTH) %in% c(timePeriod[2]:13) | .$YEAR != timePeriod[4])
     }
-    result <- temp [sample(nrow(temp), input$sampleNum), ]
+    if (input$sampleNum != "All"){
+      result <- temp [sample(nrow(temp), input$sampleNum), ]
+    } else {
+      result <- temp
+    }
     
     #TEMP IS NOT IN SF or SP FORM. must alter accordingly to calculate variables >> geom columns are "X" and "Y"
     

@@ -144,12 +144,15 @@ shinyUI(
                                         selectInput("toYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                  ),
                                  column(2,
-                                        selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500), selected = 200)
+                                        selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, "All"), selected = 200)
                                         ),
                                  column(2,
                                         actionButton("yrFilterBtn", "Filter", icon("filter"), 
                                                      style="color: #fff; background-color: #068587")
                                  )
+                               ),
+                               fluidRow(
+                                 column(12, htmlOutput("allWarning"))
                                )
                              )
                            ),
