@@ -59,7 +59,8 @@ foodctr <- st_read("data/spatial", layer = "food-centres", crs = 3414)
 ##-------------------------------------------------------MRT/LRT STATIONS
 mrt <- st_read("data/spatial", layer = "MRTLRTStnPtt", crs = 3414)
 ##-------------------------------------------------------PRESCHOOLS---------------------------------------------
-presch <- st_read("data/spatial", layer = "PRESCHOOL", crs = 3414)
+presc <- st_read("data/spatial", layer = "PRESCHOOL", crs = 3414)
+presch <- st_zm(presc)
 ##-------------------------------------------------------PRI and SEC SCHOOLS------------------------------------
 sch <- read_csv("data/spatial/schoolLatLng.csv")
 prisch <- sch %>%
@@ -79,12 +80,17 @@ secsch <- sch %>%
 
 ##Calculate field of Distance of HDB to nearest FEATURE, Calculate count of FEATURES within X m radius
 process_variables <- function(user_hdb, var_sf, x, var_name){
-  d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE) %>%
-    .$dist %>%
-    as.vector()
+  # View(var_sf)
+  
+  # view(user_hdb)
+  d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE, k = 2) 
+  # %>%
+  #   .$dist %>%
+  #   as.vector()
+  nearest <- st_nearest_points
   d2nColName <- paste0("dist2nearest_", var_name)
-  user_hdb <- mutate(user_hdb,  d2nColName = d2n)
-  remove(d2n)
+  # user_hdb <- mutate(user_hdb,  d2nColName = d2n)
+  View(d2n)
   
   withinradius <- st_nn(user_hdb, var_sf, maxdist = x, k = 999)
   
@@ -93,10 +99,11 @@ process_variables <- function(user_hdb, var_sf, x, var_name){
     temp <- append(temp, length(withinradius[[i]]))
   }
   wrColName <- paste0("within", x, "radius_", var_name)
-  hdb <- mutate(hdb, wrColName = temp)
-  remove(temp)
-  remove(withinradius)
-  
+  # hdb <- mutate(hdb, wrColName = temp)
+  # View(temp)
+  # View(withinradius)
+  # 
+  # View(user_hdb)
   return(user_hdb)
 }
 

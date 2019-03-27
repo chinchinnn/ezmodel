@@ -137,6 +137,26 @@ shinyServer(function(input, output, session) {
     )
   })
   
+  
+  ##-----------------------Dynamic SliderInput for Define Variable Tab----------------------------------------
+  observe({
+    data_choices <- input$inCheckboxGroup2
+    
+    # Can use character(0) to remove all choices
+    if (is.null(data_choices))
+      data_choices <- character(0)
+    
+    output$Dynamic_Define <- renderUI({
+      LL <- vector("list",10)
+      for(i in data_choices){
+        LL[[i]] <- list(sliderInput(inputId = paste0(i), label = paste0("No. of ",i, " in X meters radius from HDB"), min=100, step = 10, max=1000, value=500))
+      }
+      return(LL)                      
+    })
+  })
+  
+  
+  
   ##dynamic table to output selected data
   output$values <- renderTable({preloaded_data()})
   
@@ -198,6 +218,16 @@ shinyServer(function(input, output, session) {
                  server = FALSE
                ))}
   )
+  
+  ##-----------------------Dynamic Variable Computation for Define Variable Tab----------------------------------------
+  # test_process <- reactive(
+  #   return(process_variables(staged_data$geom, datasets$"Preschools", 300, "Preschools"))
+  # )
+  observeEvent(input$calcVar, {
+    process_variables(staged_data$geom, datasets$"Preschools", 300, "Preschools")
+  })
+  
+  
   
   ##-----------------------TRANSFORM VARS----------------------------------------
   shinyInput <- function(FUN, len, id, ...) {
@@ -313,26 +343,6 @@ shinyServer(function(input, output, session) {
     session$sendCustomMessage(type = 'resetInputValue', message =  "plothist_button")
     toggleModal(session, "varHistModal", toggle = "open")
   })
-  
-  
-  ##-----------------------Dynamic SliderInput for Define Variable Tab----------------------------------------
-  observe({
-    data_choices <- input$inCheckboxGroup2
-    
-    # Can use character(0) to remove all choices
-    if (is.null(data_choices))
-      data_choices <- character(0)
-    
-    output$Dynamic_Define <- renderUI({
-      LL <- vector("list",10)
-      for(i in data_choices){
-        LL[[i]] <- list(sliderInput(inputId = paste0("var",i), label = paste0("No. of ",i, " in X meters radius from HDB"), min=100, step = 10, max=1000, value=500))
-      }
-      return(LL)                      
-    })
-  })
-
-  
   
   
   
