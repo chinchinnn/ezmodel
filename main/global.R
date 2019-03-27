@@ -59,8 +59,9 @@ foodctr <- st_read("data/spatial", layer = "food-centres", crs = 3414)
 ##-------------------------------------------------------MRT/LRT STATIONS
 mrt <- st_read("data/spatial", layer = "MRTLRTStnPtt", crs = 3414)
 ##-------------------------------------------------------PRESCHOOLS---------------------------------------------
-presc <- st_read("data/spatial", layer = "PRESCHOOL", crs = 3414)
-presch <- st_zm(presc)
+presch <- st_read("data/spatial", layer = "PRESCHOOL", crs = 4326) %>% 
+  st_transform(crs = 3414) %>%
+  st_zm()
 ##-------------------------------------------------------PRI and SEC SCHOOLS------------------------------------
 sch <- read_csv("data/spatial/schoolLatLng.csv")
 prisch <- sch %>%
@@ -80,17 +81,13 @@ secsch <- sch %>%
 
 ##Calculate field of Distance of HDB to nearest FEATURE, Calculate count of FEATURES within X m radius
 process_variables <- function(user_hdb, var_sf, x, var_name){
-  # View(var_sf)
+  d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE, k = 2) %>% 
+    .$dist %>%
+    as.vector()
   
-  # view(user_hdb)
-  d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE, k = 2) 
-  # %>%
-  #   .$dist %>%
-  #   as.vector()
-  nearest <- st_nearest_points
-  d2nColName <- paste0("dist2nearest_", var_name)
-  # user_hdb <- mutate(user_hdb,  d2nColName = d2n)
-  View(d2n)
+  d2nColName <- paste0("DIST2NEAREST_", var_name)
+  result <- data_frame("a" = d2n)
+  result <- rename(result, UQ(rlang::sym(d2nColName)) := "a")
   
   withinradius <- st_nn(user_hdb, var_sf, maxdist = x, k = 999)
   
@@ -98,13 +95,11 @@ process_variables <- function(user_hdb, var_sf, x, var_name){
   for (i in 1:length(withinradius)){
     temp <- append(temp, length(withinradius[[i]]))
   }
-  wrColName <- paste0("within", x, "radius_", var_name)
-  # hdb <- mutate(hdb, wrColName = temp)
-  # View(temp)
-  # View(withinradius)
-  # 
-  # View(user_hdb)
-  return(user_hdb)
+  wrColName <- paste0("WITHIN", x, "RADIUS_", var_name)
+  result <- cbind(result, "b" = temp)
+  result <- rename(result, UQ(rlang::sym(wrColName)) := "b")
+
+  return(result)
 }
 
 #selectedData
