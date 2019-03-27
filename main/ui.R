@@ -154,52 +154,15 @@ shinyUI(
                              )
                            ),
                            sidebarLayout(
+                             
                              sidebarPanel(width = 6,
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('Preschools') > -1",
-                                 h5(strong("Number of Preschools within radius (X meters) from HDB:")),
-                                 sliderInput("preschoolRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               ),
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('MRT/LRT Stations') > -1",
-                                 h5(strong("Number of MRT/LRT Stations within radius (X meters) from HDB:")),
-                                 sliderInput("mrtRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               ),
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('Primary Schools') > -1",
-                                 h5(strong("Number of Primary Schools within radius (X meters) from HDB:")),
-                                 sliderInput("prischoolRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               ),
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('Secondary Schools') > -1",
-                                 h5(strong("Number of Secondary Schools within radius (X meters) from HDB:")),
-                                 sliderInput("secschoolRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               ),
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('Food Centres') > -1",
-                                 h5(strong("Number of Food Centres within radius (X meters) from HDB:")),
-                                 sliderInput("foodRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               ),
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('Parks') > -1",
-                                 h5(strong("Number of Parks within radius (X meters) from HDB:")),
-                                 sliderInput("parkRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               ),
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('Sports Facilities') > -1",
-                                 h5(strong("Number of Sports Facilities within radius (X meters) from HDB:")),
-                                 sliderInput("sportRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               ),
-                               conditionalPanel(
-                                 condition = "input.inCheckboxGroup2.indexOf('Raffles Place Park') > -1",
-                                 h5(strong("Number of Raffles Place Park within radius (X meters) from HDB:")),
-                                 sliderInput("rppRadius", "Radius (meters)", min=100, step = 10, max=1000, value=500)
-                               )
+                                h3(strong("Define Independent Variables: Select Radius of Search for Each Facility/Place")),
+                                uiOutput("Dynamic_Define")  
                              ), 
                              mainPanel(width = 6,
                                # tableOutput("values")
                                actionButton("calcVar","Calculate Variables")
-                               
+        
                              )
                            )
                            

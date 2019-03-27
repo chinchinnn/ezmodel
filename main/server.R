@@ -314,10 +314,26 @@ shinyServer(function(input, output, session) {
     toggleModal(session, "varHistModal", toggle = "open")
   })
   
-  ##TESTING CODE ONLY
-  output$test <- renderText(
-    testfxn("Hello")
-  )
+  
+  ##-----------------------Dynamic SliderInput for Define Variable Tab----------------------------------------
+  observe({
+    data_choices <- input$inCheckboxGroup2
+    
+    # Can use character(0) to remove all choices
+    if (is.null(data_choices))
+      data_choices <- character(0)
+    
+    output$Dynamic_Define <- renderUI({
+      LL <- vector("list",10)
+      for(i in data_choices){
+        LL[[i]] <- list(sliderInput(inputId = paste0("var",i), label = paste0("No. of ",i, " in X meters radius from HDB"), min=100, step = 10, max=1000, value=500))
+      }
+      return(LL)                      
+    })
+  })
+
+  
+  
   
   
   ##-----------------------SELECT VARS----------------------------------------
