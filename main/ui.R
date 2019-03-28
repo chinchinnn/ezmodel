@@ -103,15 +103,7 @@ shinyUI(
                                h4(strong("Choose Datasets for Analysis Here:")),
                                checkboxGroupInput("inCheckboxGroup2", "Input checkbox 2",
                                                   c("Item A"))
-                               # checkboxGroupInput(
-                               #   inputId = "preload",
-                               #   label = "Include:",
-                               #   choiceNames = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
-                               #                   "Food Centres (e.g. Hawker Centres)", "Parks", "Sports Facilities (e.g. Sports Complex)"),
-                               #   choiceValues = c("Raffles Place Park",  "MRT/LRT Stations", "Preschools", "Primary Schools", "Secondary Schools",
-                               #                    "Food Centres", "Parks", "Sports Facilities"),
-                               #   selected = c("CBD - Raffles Place Park",  "MRT/LRT Stations", "Preschools")
-                               # )
+                               
                                ),
                              mainPanel(
                                br(),

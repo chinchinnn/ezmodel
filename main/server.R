@@ -18,6 +18,7 @@ shinyServer(function(input, output, session) {
   
   ##--------------Reactive values object for storing all datasets--------------------------------------------
   datasets <- reactiveValues()
+  mapdata <- reactiveValues()
   
   ##---------POPULATING REACTIVE VALUES OBJECT WITH PRELOADED DATA------------------
   datasets$"CBD_RafflesPlacePark" <- rpp
@@ -139,9 +140,21 @@ shinyServer(function(input, output, session) {
 
       tmap_leaflet(userDotMap)}
   })
-  ##---------PRELOADED DATA----------Use myData() to access user-uploaded sf data------------------
-  preloaded_data <- reactive({
-    input$preload
+
+  ##---------POPULATING DYNAMIC DATAVIEW IN UPLOAD TAB------------------
+  observe({
+    map_choices <- names(reactiveValuesToList(mapdata))
+    
+    # Can use character(0) to remove all choices
+    if (is.null(map_choices))
+      map_choices <- character(0)
+    
+    # Can also set the label and select items
+    updateSelectInput(session, "updateMapChoice",
+                             label = paste("Include:"),
+                             choices = map_choices,
+                             selected = input$variableName
+    )
   })
 
   ##---------POPULATING DYNAMIC INPUT CHECKBOX------------------
