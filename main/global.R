@@ -81,6 +81,8 @@ secsch <- sch %>%
 
 ##Calculate field of Distance of HDB to nearest FEATURE, Calculate count of FEATURES within X m radius
 process_variables <- function(user_hdb, var_sf, x, var_name){
+  
+  ##GET DIST 2 NEAREST FEATURE
   d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE, k = 1) %>% 
     .$dist %>%
     as.vector()
@@ -88,8 +90,9 @@ process_variables <- function(user_hdb, var_sf, x, var_name){
   d2nColName <- paste0("DIST2NEAREST_", var_name)
   result <- data_frame("a" = d2n)
   result <- rename(result, UQ(rlang::sym(d2nColName)) := "a")
-  withinradius <- st_nn(user_hdb, var_sf, maxdist = x, k = length(var_sf))
   
+  ##GET NO. OF FEATURES WITHIN RADIUS
+  withinradius <- st_nn(user_hdb, var_sf, maxdist = x, k = nrow(var_sf))
   temp <- c()
   for (i in 1:length(withinradius)){
     temp <- append(temp, length(withinradius[[i]]))
@@ -97,6 +100,19 @@ process_variables <- function(user_hdb, var_sf, x, var_name){
   wrColName <- paste0("WITHIN", x, "RADIUS_", var_name)
   result <- cbind(result, "b" = temp)
   result <- rename(result, UQ(rlang::sym(wrColName)) := "b")
+
+  return(result)
+}
+
+dist2nearest_only <- function(user_hdb, var_sf, x, var_name){
+
+  d2n <- st_nn(user_hdb, var_sf, returnDist = TRUE, k = 1) %>% 
+    .$dist %>%
+    as.vector()
+  
+  d2nColName <- paste0("DIST2NEAREST_", var_name)
+  result <- data_frame("a" = d2n)
+  result <- rename(result, UQ(rlang::sym(d2nColName)) := "a")
 
   return(result)
 }

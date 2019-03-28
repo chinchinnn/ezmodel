@@ -128,7 +128,7 @@ shinyUI(
                              br(),
                              box(width = 12,
                                h4(strong("Sample HDB Resale Data by Time Period:")),
-                               h5("View sample results in next tab. Default 200 sampled from 2018 data."),
+                               h5("Default 200 sampled from 2018 data."),
                                h5("Note: The higher the sample count, the longer it will take for the GWR Model to run."),
                                fluidRow(
                                  column(2,
@@ -152,25 +152,29 @@ shinyUI(
                                  )
                                ),
                                fluidRow(
+                                 column(12, h5("View filtered data in the next tab after filtering."))
+                               ),
+                               fluidRow(
                                  column(12, htmlOutput("allWarning"))
                                )
                              )
                            ),
-                           sidebarLayout(
-                             
-                             sidebarPanel(width = 6,
-                                h3(strong("Define Independent Variables: Select Radius of Search for Each Facility/Place")),
-                                uiOutput("Dynamic_Define")  
-                             ), 
-                             mainPanel(width = 6,
-                               # tableOutput("values")
-                               actionButton("calcVar","Calculate Variables")
-        
-                             )
+                           box(width = 12,
+                               sidebarLayout(
+                                 sidebarPanel(width = 10,
+                                              h3(strong("Define Independent Variables: Select Radius of Search for Each Facility/Place")),
+                                              uiOutput("Dynamic_Define")  
+                                 ), 
+                                 mainPanel(width = 2,
+                                           # tableOutput("values")
+                                           br(),
+                                           br(),
+                                           actionButton("calcVar","Calculate Variables",
+                                                        style="color: #fff; background-color: #068587")
+                                           
+                                 )
+                               )   
                            )
-                           
-                           
-                           
                   ),
                   tabPanel("View Data", fluid = TRUE,
                           fluidPage(

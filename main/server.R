@@ -19,6 +19,16 @@ shinyServer(function(input, output, session) {
   ##--------------Reactive values object for storing all datasets--------------------------------------------
   datasets <- reactiveValues()
   
+  ##---------POPULATING REACTIVE VALUES OBJECT WITH PRELOADED DATA------------------
+  datasets$"CBD_RafflesPlacePark" <- rpp
+  datasets$"MRT_LRT_Stations" <- mrt
+  datasets$"Preschools" <- presch
+  datasets$"Primary_Schools" <- prisch
+  datasets$"Secondary_Schools" <- secsch
+  datasets$"Food_Centres" <- foodctr
+  datasets$"Parks" <- park
+  datasets$"Sports_Facilities" <- sport
+  
   ##---------UPLOAD TAB----------Use myData() to access user-uploaded sf data------------------
   featureTitle <- eventReactive(input$uploadSubmit, {input$variableName})
   
@@ -107,20 +117,6 @@ shinyServer(function(input, output, session) {
     input$preload
   })
 
-  ##---------POPULATING REACTIVE VALUES OBJECT WITH PRELOADED DATA------------------
-  
-  
-  datasets$"CBD - Raffles Place Park" <- rpp
-  datasets$"MRT/LRT Stations" <- mrt
-  datasets$"Preschools" <- presch
-  datasets$"Primary Schools" <- prisch
-  datasets$"Secondary Schools" <- secsch
-  datasets$"Food Centres" <- foodctr
-  datasets$"Parks" <- park
-  datasets$"Sports Facilities" <- sport
-  
-  
-  
   ##---------POPULATING DYNAMIC INPUT CHECKBOX------------------
   observe({
     data_choices <- names(reactiveValuesToList(datasets))
@@ -149,7 +145,9 @@ shinyServer(function(input, output, session) {
     output$Dynamic_Define <- renderUI({
       LL <- vector("list",10)
       for(i in data_choices){
-        LL[[i]] <- list(sliderInput(inputId = paste0(i), label = paste0("No. of ",i, " in X meters radius from HDB"), min=100, step = 10, max=1000, value=500))
+        if (i != "CBD_RafflesPlacePark"){
+          LL[[i]] <- list(sliderInput(inputId = paste0(i), label = paste0("No. of ",i, " in X meters radius from HDB"), min=100, step = 10, max=1000, value=500))
+        }
       }
       return(LL)                      
     })
@@ -177,12 +175,14 @@ shinyServer(function(input, output, session) {
                {
                  if(input$sampleNum == "All"){
                    output$allWarning <- renderUI(HTML("<div style = 'color:red'>Warning: Calculation using all data points will result in long processing times when running the GWR model (>10min)</div>"))
+                 } else {
+                   output$allWarning <- NULL
                  }
                }
                )
   
   ##------------MUTATE HDB DATA ACCORDING TO HOW USER DEF VARS-------------------
-  hdb_withVars <- reactive({
+  hdbSample <- reactive({
     ##THIS IS PLACEHOLDER CODE; EDIT ACCORDINGLY
     timePeriod <- hdb_filtered()
     if(timePeriod[3] == timePeriod[4]){
@@ -198,13 +198,6 @@ shinyServer(function(input, output, session) {
     } else {
       result <- temp
     }
-    
-    #TEMP IS NOT IN SF or SP FORM. must alter accordingly to calculate variables >> geom columns are "X" and "Y"
-    
-    ###################
-    #SOME MUTATION HERE
-    ###################
-    
     result
   })
   
@@ -213,14 +206,19 @@ shinyServer(function(input, output, session) {
                                 geom = st_as_sf(hdb, coords = c("X", "Y"), crs = "+init=epsg:3414") %>% .$geometry)
                                 #GEOM is just to store geometry column for 
   observeEvent({input$refreshData | input$yrFilterBtn | input$calcVar}, {
-    temp <- hdb_withVars()
+    temp <- hdbSample()
     staged_data$value <- temp
     staged_data$geom <- st_as_sf(staged_data$value, coords = c("X", "Y"), crs = "+init=epsg:3414") %>% .$geometry
     data_choices <- input$inCheckboxGroup2
     for(i in data_choices){
-      result <- process_variables(staged_data$geom, datasets[[i]], input[[i]], i)
-      staged_data$value <- cbind(staged_data$value, result)
-      
+      if (i == "CBD_RafflesPlacePark"){
+        result <- dist2nearest_only(staged_data$geom, datasets[[i]], input[[i]], i)
+        staged_data$value <- cbind(staged_data$value, result)
+      } else {
+        result <- process_variables(staged_data$geom, datasets[[i]], input[[i]], i)
+        staged_data$value <- cbind(staged_data$value, result)
+      }
+
     }
 
   })
@@ -255,9 +253,8 @@ shinyServer(function(input, output, session) {
   staged_data_transformed <- reactiveValues(value = data_frame())
   transform_variable_list <- reactiveValues(value = data_frame())
   
-  observeEvent(input$refreshData, ignoreNULL = FALSE, {
+  observeEvent(input$refreshData | input$calcVar, ignoreNULL = FALSE, {
     staged_data_transformed$value <- staged_data$value
-    # cat("CHANGED")
     transform_variable_list$value <- data_frame(
       `Variable List` = colnames(staged_data$value)[!(colnames(staged_data$value) %in% nonlmVars)],
       `Transform Status` = rep("None", ncol(staged_data$value)-12)
@@ -542,7 +539,9 @@ shinyServer(function(input, output, session) {
         # if the only variable left in the selection box is the target, the following statement will give an error
         target <- paste0(targetVar, " ~ ")
         formula <- paste0(variableSelect[1:(length(variableSelect)-1)], " + ", collapse = '')
-        formula <- paste0(formula, globalvariableSelect[1:(length(globalvariableSelect))], sep = " + ", collapse = '')
+        if(length(globalvariableSelect) > 0){
+          formula <- paste0(formula, globalvariableSelect[1:(length(globalvariableSelect))], sep = " + ", collapse = '')
+        }
         formula <- paste0(target, formula, variableSelect[length(variableSelect)], collapse = '')
         cat(formula)
         cat(globalvariableSelect)
@@ -577,12 +576,13 @@ shinyServer(function(input, output, session) {
       gwrModelResult <- gwr.basic(as.formula(formula),
                                   data = staging_data_spdf, bw=bandwidth, kernel = input$kernel_select,
                                   adaptive = input$adaptivekernel, longlat=FALSE)
-      
+      if(length(globalvariableSelect) > 0){
       gwrMixedResult <- gwr.mixed(as.formula(formula),
                                   data = staging_data_spdf,
                                   fixed.vars = c(globalvariableSelect),
                                   bw=bandwidth, kernel = input$kernel_select,
                                   adaptive = input$adaptivekernel, longlat=FALSE)
+      }
     }, error = function(err) {
       errorMessage  <<- "ERROR"
     })
@@ -647,7 +647,11 @@ shinyServer(function(input, output, session) {
     
     #GWR Mixed Output
     output$mixedGWROutput <- renderPrint({
-      gwrMixedResult
+      if(exists("gwrMixedResult")){
+        gwrMixedResult
+      } else {
+        return(c("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run."))
+      }
     })
   })
   
