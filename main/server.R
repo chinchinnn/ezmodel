@@ -18,6 +18,7 @@ shinyServer(function(input, output, session) {
   
   ##--------------Reactive values object for storing all datasets--------------------------------------------
   datasets <- reactiveValues()
+  mapdata <- reactiveValues()
   
   ##---------POPULATING REACTIVE VALUES OBJECT WITH PRELOADED DATA------------------
   datasets$"CBD_RafflesPlacePark" <- rpp
@@ -46,9 +47,13 @@ shinyServer(function(input, output, session) {
       if(input$epsg != 3414){
         temp <- st_transform(temp, 3414)
       }
+      datasets[[input$variableName]] <- temp
+      mapdata[[input$variableName]] <- temp
+      View(temp)
       temp #RETURN
       ##----------------PROCESS SHAPEFILE-----------------
-    } else if (!is.null(input$shapefile)){
+    } 
+    if(!is.null(input$shapefile)){
       prevWD <- getwd()
       shpDF <- input$shapefile
       uploadDir <- dirname(shpDF$datapath[1])
@@ -64,7 +69,7 @@ shinyServer(function(input, output, session) {
       if(input$epsg != 3414){
         temp <- st_transform(temp, 3414)
       }
-
+      mapdata[[input$variableName]] <- temp
       datasets[[input$variableName]] <- temp
       temp #RETURN
     } else {
@@ -81,9 +86,15 @@ shinyServer(function(input, output, session) {
   #     datasets$input$variableName <- 3
   # })
   
+  ##---------UPLOAD TAB----------select dataset to render into datatable------------------
+  selected_df <- reactive({
+    mapdata[[input$updateMapChoice]]
+  })
+  
+  
   ##---------UPLOAD TAB----------Render myData() into dataTable------------------
   output$userdata <- DT::renderDataTable(
-    DT::datatable(myData(),
+    DT::datatable(selected_df(),
                   class = "nowrap hover row-border",
                   escape = FALSE,
                   options = list(
@@ -94,6 +105,7 @@ shinyServer(function(input, output, session) {
                   ))
   )
   ##---------UPLOAD TAB----------Render myData() into leaflet map------------------
+  
   output$userMap <- renderLeaflet({
     tmap_mode("view")
     userDotMap <- 
@@ -112,9 +124,21 @@ shinyServer(function(input, output, session) {
       
       tmap_leaflet(userDotMap)}
   })
-  ##---------PRELOADED DATA----------Use myData() to access user-uploaded sf data------------------
-  preloaded_data <- reactive({
-    input$preload
+
+  ##---------POPULATING DYNAMIC DATAVIEW IN UPLOAD TAB------------------
+  observe({
+    map_choices <- names(reactiveValuesToList(mapdata))
+    
+    # Can use character(0) to remove all choices
+    if (is.null(map_choices))
+      map_choices <- character(0)
+    
+    # Can also set the label and select items
+    updateSelectInput(session, "updateMapChoice",
+                             label = paste("Include:"),
+                             choices = map_choices,
+                             selected = input$variableName
+    )
   })
 
   ##---------POPULATING DYNAMIC INPUT CHECKBOX------------------
