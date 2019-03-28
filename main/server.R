@@ -668,6 +668,95 @@ shinyServer(function(input, output, session) {
       summary(gwrModelResult$lm)
     })
     
+    output$globalRegressionDiagnosticOutput <- renderPrint({
+      # for(item in names(gwrModelResult$GW.diagnostic)){
+      #   print(paste0(item, ": ", gwrModelResult$GW.diagnostic[[item]]))
+      # }
+      var.n<-length(gwrModelResult$lm$coefficients)
+      dp.n<-length(gwrModelResult$lm$residuals)
+      cat("**********Extra Diagnostic information**********\n")
+      lm_RSS<-sum(gwrModelResult$lm$residuals^2)
+      lm_Rank<-gwrModelResult$lm$rank     
+      cat("Residual sum of squares:", lm_RSS)
+      #lm_sigma<-sqrt(lm_RSS/(dp.n-lm_Rank-2))
+      lm_sigma<-sqrt(lm_RSS/(dp.n-2))
+      cat("\nSigma(hat):", lm_sigma)
+      lm_AIC<-dp.n*log(lm_RSS/dp.n)+dp.n*log(2*pi)+dp.n+2*(var.n + 1)
+      #AIC = dev + 2.0 * (double)(MGlobal + 1.0);
+      cat("\nAIC: ", lm_AIC)
+      ##AICc = 	dev + 2.0 * (double)N * ( (double)MGlobal + 1.0) / ((double)N - (double)MGlobal - 2.0);
+      lm_AICc= dp.n*log(lm_RSS/dp.n)+dp.n*log(2*pi)+dp.n+2*dp.n*(var.n+1)/(dp.n-var.n-2)
+      cat("\nAICc: ", lm_AICc)
+    })
+    
+    output$gwrVerbatimOutput <- renderPrint({
+      var.n<-length(gwrModelResult$lm$coefficients)
+      dp.n<-length(gwrModelResult$lm$residuals)
+      cat("Kernel function:", gwrModelResult$GW.arguments$kernel, "\n")
+      if(gwrModelResult$GW.arguments$adaptive)
+        cat("Adaptive bandwidth: ", gwrModelResult$GW.arguments$bw, " (number of nearest neighbours)\n", sep="")
+      else
+        cat("Fixed bandwidth:", gwrModelResult$GW.arguments$bw, "\n")
+      if(gwrModelResult$GW.arguments$rp.given)
+        cat("Regression points: A seperate set of regression points is used.\n")
+      else
+        cat("Regression points: the same locations as observations are used.\n")
+      if (gwrModelResult$GW.arguments$DM.given)
+        cat("Distance metric: A distance matrix is specified for this model calibration.\n")
+      else
+      {
+        if (gwrModelResult$GW.arguments$longlat)
+          cat("Distance metric: Great Circle distance metric is used.\n")
+        else if (gwrModelResult$GW.arguments$p==2)
+          cat("Distance metric: Euclidean distance metric is used.\n")
+        else if (gwrModelResult$GW.arguments$p==1)
+          cat("Distance metric: Manhattan distance metric is used.\n")
+        else if (is.infinite(gwrModelResult$GW.arguments$p))
+          cat("Distance metric: Chebyshev distance metric is used.\n")
+        else
+          cat("Distance metric: A generalized Minkowski distance metric is used with p=",gwrModelResult$GW.arguments$p,".\n")
+        if (gwrModelResult$GW.arguments$theta!=0&&gwrModelResult$GW.arguments$p!=2&&!gwrModelResult$GW.arguments$longlat)
+          cat("Coordinate rotation: The coordinate system is rotated by an angle", gwrModelResult$GW.arguments$theta, "in radian.\n")
+      }
+      
+      cat("\n****************Summary of GWR coefficient estimates:******************\n")
+      df0 <- as(gwrModelResult$SDF, "data.frame")[,1:var.n, drop=FALSE]
+      if (any(is.na(df0))) {
+        df0 <- na.omit(df0)
+        warning("NAs in coefficients dropped")
+      }
+      CM <- t(apply(df0, 2, summary))[,c(1:3,5,6)]
+      if(var.n==1)
+      {
+        CM <- matrix(CM, nrow=1)
+        colnames(CM) <- c("Min.", "1st Qu.", "Median", "3rd Qu.", "Max.")
+        rownames(CM) <- names(gwrModelResult$SDF)[1]
+      }
+      rnames<-rownames(CM)
+      for (i in 1:length(rnames))
+        rnames[i]<-paste("   ",rnames[i],sep="")
+      rownames(CM) <-rnames
+      printCoefmat(CM)
+    })
+    
+    output$gwrDiagnosticOutput <- renderPrint({
+      var.n<-length(gwrModelResult$lm$coefficients)
+      dp.n<-length(gwrModelResult$lm$residuals)
+      if (gwrModelResult$GW.arguments$hatmatrix) 
+      {	
+        cat("**********Diagnostic information************\n")
+        cat("Number of data points:", dp.n, "\n")
+        cat("Effective number of parameters:", gwrModelResult$GW.diagnostic$enp, "\n")
+        cat("Effective degrees of freedom:", gwrModelResult$GW.diagnostic$edf, "\n")
+        cat("AICc:",
+            gwrModelResult$GW.diagnostic$AICc, "\n")
+        cat("AIC:", gwrModelResult$GW.diagnostic$AIC, "\n")
+        cat("Residual sum of squares:", gwrModelResult$GW.diagnostic$RSS.gw, "\n")
+        cat("R-square value: ",gwrModelResult$GW.diagnostic$gw.R2,"\n")
+        cat("Adjusted R-square value: ",gwrModelResult$GW.diagnostic$gwR2.adj,"\n")	
+      }
+    })
+    
     #GWR Mixed Output
     output$mixedGWROutput <- renderPrint({
       if(exists("gwrMixedResult")){
@@ -676,6 +765,7 @@ shinyServer(function(input, output, session) {
         return(c("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run."))
       }
     })
+    
   })
   
   
@@ -778,7 +868,7 @@ shinyServer(function(input, output, session) {
         tm_dots(n=4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
                 id='FULL_ADRESS',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
         tm_legend(legend.outside=TRUE)+
-        tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE)
+        tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE, view.legend.position = c("right", "bottom"))
       
       tmap_leaflet(param_Plot)
     }, error = function(err) {
@@ -822,7 +912,7 @@ shinyServer(function(input, output, session) {
         tm_dots(n=4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
                 id='FULL_ADDRESS',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
         tm_legend(legend.outside=TRUE)+
-        tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE)
+        tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE, view.legend.position = c("right", "bottom"))
       
       tmap_leaflet(param_Plot)
     }, error = function(err) {

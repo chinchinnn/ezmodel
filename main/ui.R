@@ -49,16 +49,22 @@ shinyUI(
                                      sidebarLayout(
                                        sidebarPanel(
                                          h4(strong("Required Fields:")),
-                                         textInput("variableName",
-                                                   label = "Name of Variable (Single word/separate words with underscore)",
-                                                   placeholder = "E.g. MY_FEATURE"),
-                                         textInput("epsg",
-                                                   label = "EPSG Code:",
-                                                   placeholder = "E.g. 4326 or 3414"),
+                                         fluidRow(
+                                           column(8,
+                                                  textInput("variableName",
+                                                            label = "Name of Variable (No Spaces):",
+                                                            placeholder = "E.g. MY_FEATURE")
+                                                  ),
+                                           column(4,
+                                                  textInput("epsg",
+                                                            label = "EPSG Code:",
+                                                            placeholder = "E.g. 4326 or 3414")
+                                                  )
+                                         ),
                                          h4(strong("Upload Data Here:")),
                                          h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
                                          h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
-                                         h4("Click on the Upload button below to submit."),
+                                         HTML("<h5 style = 'color: #068587'>Click on the <strong>Upload</strong> button below to submit.</h5>"),
                                          uiOutput('resettableInput'),
                                          box(width = 12, collapsed = TRUE, collapsible = TRUE,
                                              title = "CSV upload options",
@@ -399,12 +405,33 @@ shinyUI(
                                                   verbatimTextOutput("mixedGWROutput")
                                                 ))),
                                        
-                                       tabPanel("Global Regression",
+                                       tabPanel("Regressions Comparison",
                                                 tags$style(type='text/css', '#globalRegressionOutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'), 
-                                                fluidRow(column(
-                                                  12,
-                                                  verbatimTextOutput("globalRegressionOutput")
-                                                )))
+                                                tags$style(type='text/css', '#globalRegressionDiagnosticOutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'),
+                                                tags$style(type='text/css', '#gwrVerbatimOutput {background-color: #003663; color: white; font-family: "TW Cen MT";}'), 
+                                                tags$style(type='text/css', '#gwrDiagnosticOutput {background-color: #003663; color: white; font-family: "TW Cen MT";}'), 
+                                                fluidRow(
+                                                  column(6,
+                                                         h4("Linear Regression Model Output"),
+                                                         verbatimTextOutput("globalRegressionOutput")
+                                                  ),
+                                                  column(6,
+                                                         h4("GWR (Non-mixed) Model Output"),
+                                                         verbatimTextOutput("gwrVerbatimOutput")
+                                                  )
+                                                ),
+                                                hr(),
+                                                fluidRow(
+                                                  column(6,
+                                                         h5("Linear Regression Diagnostics"),
+                                                         verbatimTextOutput("globalRegressionDiagnosticOutput")
+                                                         ),
+                                                  column(6,
+                                                         h5("GWR (Non-mixed) Diagnostics"),
+                                                         verbatimTextOutput("gwrDiagnosticOutput")
+                                                         )
+                                                )
+                                                )
                                            )
                                            )
                             
