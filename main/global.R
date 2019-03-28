@@ -1,15 +1,17 @@
 #Import Required Packages
-packages = c('shiny', 'shinydashboard', 'shinyWidgets', 'shinycssloaders', 'shinythemes', 'shinyjs', 
-             'shinyBS', 'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
-             'geofacet', 'ggmap', 'dendextend', 'heatmaply','tmap','leaflet',
-             'DT', 'GWmodel', 'nngeo',
-             'corrplot', 'rlang')
+# packages = c('shiny', 'shinydashboard', 'shinyWidgets', 'shinycssloaders', 'shinythemes', 'shinyjs', 
+#              'shinyBS', 'tidyverse', 'sp','maps','maptools', 'gstat', 'rgeos', 'sf', 'raster', 'rgdal',
+#              'geofacet', 'ggmap', 'dendextend', 'heatmaply','tmap','leaflet',
+#              'DT', 'GWmodel', 'nngeo',
+#              'corrplot', 'rlang')
 # for (p in packages){
   # if (!require(p, character.only = T)) {
   #   install.packages(p)
   # }
 #   library(p,character.only = T)
 # }
+
+#INDIVIDUAL LINES USED FOR DEPLOYING ONTO SHINYAPPS.IO; USE ABOVE LINES IN RSTUDIO IF PACKAGES NOT INSTALLED
 library('shiny')
 library('tidyverse')
 library('sp')
@@ -116,9 +118,6 @@ dist2nearest_only <- function(user_hdb, var_sf, x, var_name){
 
   return(result)
 }
-
-#selectedData
-selectedData <- c()
 
 #non-lm-Var Columns
 nonlmVars <- c("MONTH", "TOWN", "FLAT_TYPE", "BLOCK", "STREET_NAME",

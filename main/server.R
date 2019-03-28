@@ -18,7 +18,6 @@ shinyServer(function(input, output, session) {
   
   ##--------------Reactive values object for storing all datasets--------------------------------------------
   datasets <- reactiveValues()
-  mapdata <- reactiveValues()
   
   ##---------POPULATING REACTIVE VALUES OBJECT WITH PRELOADED DATA------------------
   datasets$"CBD_RafflesPlacePark" <- rpp
@@ -61,7 +60,7 @@ shinyServer(function(input, output, session) {
         temp <- st_transform(temp, 3414)
       }
       datasets[[input$variableName]] <- temp
-
+      
       ##----------------PROCESS SHAPEFILE-----------------
     } 
     if (!is.null(input$shapefile) & !(input$variableName %in% names(datasetsList))){
@@ -115,7 +114,7 @@ shinyServer(function(input, output, session) {
     )
   })
   ##---------UPLOAD TAB-------------------------------------------------------
-
+  
   output$userMap <- renderLeaflet({
     datasetsList <- reactiveValuesToList(datasets) 
     datasetsNames <- names(datasetsList)
@@ -137,26 +136,10 @@ shinyServer(function(input, output, session) {
         userDotMap <- userDotMap +
           tm_shape(datasetsList[[userdataName]], name = userdataName) + tm_dots(col="red") 
       }
-
+      
       tmap_leaflet(userDotMap)}
   })
-
-  ##---------POPULATING DYNAMIC DATAVIEW IN UPLOAD TAB------------------
-  observe({
-    map_choices <- names(reactiveValuesToList(mapdata))
-    
-    # Can use character(0) to remove all choices
-    if (is.null(map_choices))
-      map_choices <- character(0)
-    
-    # Can also set the label and select items
-    updateSelectInput(session, "updateMapChoice",
-                             label = paste("Include:"),
-                             choices = map_choices,
-                             selected = input$variableName
-    )
-  })
-
+  
   ##---------POPULATING DYNAMIC INPUT CHECKBOX------------------
   observe({
     data_choices <- names(reactiveValuesToList(datasets))
@@ -219,7 +202,7 @@ shinyServer(function(input, output, session) {
                    output$allWarning <- NULL
                  }
                }
-               )
+  )
   
   ##------------MUTATE HDB DATA ACCORDING TO HOW USER DEF VARS-------------------
   hdbSample <- reactive({
@@ -244,7 +227,7 @@ shinyServer(function(input, output, session) {
   ##------------RENDER HDB DATA--------------------------------------------------
   staged_data <- reactiveValues(value = hdb,
                                 geom = st_as_sf(hdb, coords = c("X", "Y"), crs = "+init=epsg:3414") %>% .$geometry)
-                                #GEOM is just to store geometry column for 
+  #GEOM is just to store geometry column for 
   observeEvent({input$refreshData | input$yrFilterBtn | input$calcVar}, {
     temp <- hdbSample()
     staged_data$value <- temp
@@ -258,9 +241,9 @@ shinyServer(function(input, output, session) {
         result <- process_variables(staged_data$geom, datasets[[i]], input[[i]], i)
         staged_data$value <- cbind(staged_data$value, result)
       }
-
+      
     }
-
+    
   })
   
   output$hdbWithVarsDT <- renderDataTable(
@@ -312,7 +295,7 @@ shinyServer(function(input, output, session) {
                                           onclick = 'Shiny.onInputChange(\"plothist_button\",  this.id)',
                                           icon("chart-bar"), 
                                           style="color: #fff; background-color: #068587")
-                     )
+          )
     ) %>%
       datatable(
         class = "nowrap hover row-border",
@@ -422,11 +405,11 @@ shinyServer(function(input, output, session) {
     
     plotData <- cbind(gwrAllVariable_DisplayList,
                       data.frame(Local = shinyInput(actionButton, nrow(gwrAllVariable_DisplayList), #c() of actions buttons?                                                        
-                                                      'button_', label = "Local",
-                                                      onclick = 'Shiny.onInputChange(\"include_button\",  this.id)'),
+                                                    'button_', label = "Local",
+                                                    onclick = 'Shiny.onInputChange(\"include_button\",  this.id)'),
                                  Global = shinyInput(actionButton, nrow(gwrAllVariable_DisplayList),
-                                            'button_', label = "Global",
-                                            onclick = 'Shiny.onInputChange(\"global_button\",  this.id)')
+                                                     'button_', label = "Global",
+                                                     onclick = 'Shiny.onInputChange(\"global_button\",  this.id)')
                       )
     ) 
     colnames(plotData) <- c("Variable List", "Local", "Global")
@@ -617,11 +600,11 @@ shinyServer(function(input, output, session) {
                                   data = staging_data_spdf, bw=bandwidth, kernel = input$kernel_select,
                                   adaptive = input$adaptivekernel, longlat=FALSE)
       if(length(globalvariableSelect) > 0){
-      gwrMixedResult <- gwr.mixed(as.formula(formula),
-                                  data = staging_data_spdf,
-                                  fixed.vars = c(globalvariableSelect),
-                                  bw=bandwidth, kernel = input$kernel_select,
-                                  adaptive = input$adaptivekernel, longlat=FALSE)
+        gwrMixedResult <- gwr.mixed(as.formula(formula),
+                                    data = staging_data_spdf,
+                                    fixed.vars = c(globalvariableSelect),
+                                    bw=bandwidth, kernel = input$kernel_select,
+                                    adaptive = input$adaptivekernel, longlat=FALSE)
       }
     }, error = function(err) {
       errorMessage  <<- "ERROR"
