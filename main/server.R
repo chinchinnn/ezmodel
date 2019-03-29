@@ -459,7 +459,7 @@ shinyServer(function(input, output, session) {
     plotData2 <- cbind(gwrGlobalVariable_DisplayList,
                        data.frame(Actions = shinyInput(  actionButton, nrow(gwrGlobalVariable_DisplayList),
                                                          'button_', label = "Exclude",
-                                                         onclick = 'Shiny.onInputChange(\"exclude_button\",  this.id)'))
+                                                         onclick = 'Shiny.onInputChange(\"exclude_global_button\",  this.id)'))
     )
     colnames(plotData2) <- c("Variable List", "Actions")
     
@@ -511,11 +511,24 @@ shinyServer(function(input, output, session) {
     
   })
   
+  #ACTIONS FOR EXCLUDE GLOBAL BUTTON
+  observeEvent(input$exclude_global_button, {
+    selectedRow <- as.numeric(strsplit(input$exclude_global_button, "_")[[1]][2])
+    
+    corr_variable_list$value <- corr_variable_list$value %>%
+      mutate(includeexclude = ifelse(var_list == gwrGlobalVariable_DisplayList[selectedRow,1] &
+                                       !str_detect(var_list, "RESALE"), 0, includeexclude))
+    
+    session$sendCustomMessage(type = 'resetInputValue', message =  "exclude_global_button")
+    
+  })
+  
   #CORRELATION PLOT
   correlationPlotData <- reactiveValues(data = data_frame())
   observeEvent(input$corrBtn, {
     if(nrow(gwrSelectedVariable_DisplayList) > 1) {
       variableSelect <- as.character(gwrSelectedVariable_DisplayList[,'var_list'])
+      variableSelect <- c(variableSelect, as.character(gwrGlobalVariable_DisplayList[,'var_list']))
       output$corrPlotErrorMsg <- renderText({""})
       output$correlationPlot <- renderPlot({corrplot.mixed(cor(staged_data_transformed$value[,variableSelect]), 
                                                            tl.cex = 1.1, number.cex = 1.3, cl.cex = 1.1,
