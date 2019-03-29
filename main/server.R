@@ -28,6 +28,7 @@ shinyServer(function(input, output, session) {
   datasets$"Food_Centres" <- foodctr
   datasets$"Parks" <- park
   datasets$"Sports_Facilities" <- sport
+  datasets$"Shopping_Malls" <- shopping
   
   ##---------UPLOAD TAB--------------------------------------------------------------
   # featureTitle <- eventReactive(input$uploadSubmit, {input$variableName})

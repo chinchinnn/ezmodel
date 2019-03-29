@@ -74,8 +74,10 @@ secsch <- sch %>%
   filter(mainlevel_code == "SECONDARY" | mainlevel_code == "MIXED LEVEL") %>%
   st_as_sf(coords = c("X", "Y"), crs = "+init=epsg:4326") %>%
   st_transform(crs = 3414)
-
-
+##-------------------------------------------------------SHOPPING MALLS------------------------------------
+shopping <- read_csv("data/spatial/ShoppingMallsXY.csv") %>%
+  st_as_sf(coords = c("X", "Y"), crs = "+init=epsg:3414") %>%
+  st_transform(crs = 3414)
 
 ##END OF LOADING PRELOADED DATA
 
