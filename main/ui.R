@@ -143,6 +143,9 @@ shinyUI(
                                                     selectInput("toYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                              ),
                                              column(2,
+                                                    selectInput("flatType", "Flat Type", c("1 ROOM", "2 ROOM", "3 ROOM", "4 Room", "5 Room", "EXECUTIVE", "MULTI-GENERATION"), selected = "1-Room")
+                                             ),
+                                             column(2,
                                                     selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, "All"), selected = 200)
                                              ),
                                              column(2,
