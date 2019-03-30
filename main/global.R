@@ -134,4 +134,5 @@ preloadDataNames <- c("CBD_RafflesPlacePark",
                       "Secondary_Schools",
                       "Food_Centres",
                       "Parks",
-                      "Sports_Facilities")
+                      "Sports_Facilities",
+                      "Shopping_Malls")
