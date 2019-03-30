@@ -218,6 +218,7 @@ shinyServer(function(input, output, session) {
         filter(!as.numeric(.$MONTH) %in% c(timePeriod[2]:13) | .$YEAR != timePeriod[4])
     }
     temp <- filter(temp, FLAT_TYPE == input$flatType)
+
     if (input$sampleNum != "All"){
       if(length(temp) > input$sampleNum){
         result <- temp [sample(nrow(temp), input$sampleNum), ]
