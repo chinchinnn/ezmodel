@@ -35,7 +35,49 @@ shinyUI(
         ##-------------------------------------------Tab of Overview-----------------------------------------------------
         tabItem(tabName = "overview",
                 fluidPage(theme = shinytheme("flatly"),
-                          htmlOutput("overview")
+                          htmlOutput("overview"),
+                          box(title = "Introduction", status = "primary", solidHeader = T,
+                              width = 12,
+                            column(12,
+                                   p("Currently, existing hedonic pricing models that use linear regression fail to
+                                     take into account spatial variations among the features in the local surroundings
+                                     which may be key contributors to the housing prices, hence there is a need for a
+                                     geographically weighted regression (GWR) model to more accurately analyse the
+                                     effects of local spatial variations on housing prices."),
+                                   p("This appplication seeks to allow users flexibility in calibrating a GWR model,
+                                      with a focus on HDB resale prices."),
+                                   p("An extra feature in this app allows users to also calibrate Semiparametric GWR models
+                                      through selecting both global and local parameters to be used in the regression model.")
+                                   )
+                          ),
+                          box(title = "Using the App", status = "primary", solidHeader = T,
+                              width = 12,
+                              column(12,
+                                     HTML("Our application allows users to upload their own location dataset
+                                           of features they wish to experiment as an independent variable against
+                                           HDB resale prices."),
+                                     HTML("<p>Click on the <strong>GWR Model</strong> button in the side menu to launch the
+                                        main app, and follow through the applications' tabs and steps below:</p>"),
+                                     HTML("<ol>"),
+                                       HTML("<li><strong>Upload</strong> any dataset containing point data of features in Singapore that
+                                                might be relevant to HDB resale prices. (Optional)</li>"),
+                                       HTML("<li>Alternatively, scroll down on the same page to <strong>find datasets</strong> that have been preloaded
+                                               onto the server, to experiment with the app's features.</li>"),
+                                       HTML("<li><strong>Define</strong> variables in the next tab based on the selectedfeatures'
+                                               geographical relationship with individual resale price observation.</li>"),
+                                       HTML("<li><strong>View data</strong> in the following tab to take a look at the
+                                               variables that were generated through the calculations.</li>"),
+                                       HTML("<li><strong>Transform</strong> the values of any variables that exhibit non-normal distributions 
+                                               by observing the histogram plots of the variable values.</li>"),
+                                       HTML("<li>Users can now <strong>select</strong> which independent variables to include
+                                                in both the Full and Semiparametric GWR models. <em>(Note: do view the correlation plots
+                                                to identify dependent variables that are highly correlated with each other 
+                                               to prevent the issue of multicollinearity in the regression model.)</em></li>"),
+                                       HTML("<li>Finally, <strong>run the GWR model</strong> to derive the coefficient and dependent
+                                                value estimates, along with model diagnostics information.</li>"),
+                                     HTML("</ol>")
+                                     )
+                              )
                 )
                 
         ),
@@ -63,7 +105,7 @@ shinyUI(
                                          ),
                                          h4(strong("Upload Data Here:")),
                                          h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
-                                         h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
+                                         # h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
                                          HTML("<h5 style = 'color: #068587'>Click on the <strong>Upload</strong> button below to submit.</h5>"),
                                          uiOutput('resettableInput'),
                                          box(width = 12, collapsed = TRUE, collapsible = TRUE,
@@ -118,7 +160,6 @@ shinyUI(
                                            tags$li("After uploading one dataset, press \"Clear Upload Fields\" button to clear input fields."),
                                            tags$li("Add a new Shapefile/CSV and press the \"Upload\" button to add the new dataset.")
                                          )
-                                         
                                        )
                                      )
                             ),
@@ -126,8 +167,8 @@ shinyUI(
                                      fluidPage(
                                        br(),
                                        box(width = 12,
-                                           h4(strong("Sample HDB Resale Data by Time Period:")),
-                                           h5("Default 200 sampled from 2018 data."),
+                                           h4(strong("Sample HDB Resale Data by Time Period and Flat Type:")),
+                                           h5("Default 300 sampled from 2018 3-Room Flat data."),
                                            h5("Note: The higher the sample count, the longer it will take for the GWR Model to run."),
                                            fluidRow(
                                              column(2,
@@ -143,18 +184,18 @@ shinyUI(
                                                     selectInput("toYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                              ),
                                              column(2,
-                                                    selectInput("flatType", "Flat Type", c("1 ROOM", "2 ROOM", "3 ROOM", "4 Room", "5 Room", "EXECUTIVE", "MULTI-GENERATION"), selected = "1-Room")
+                                                    selectInput("flatType", "Flat Type", c("1 ROOM", "2 ROOM", "3 ROOM", "4 Room", "5 Room", "EXECUTIVE", "MULTI-GENERATION"), selected = "3 ROOM")
                                              ),
                                              column(2,
-                                                    selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, "All"), selected = 200)
-                                             ),
-                                             column(2,
-                                                    actionButton("yrFilterBtn", "Filter", icon("filter"), 
-                                                                 style="color: #fff; background-color: #068587")
+                                                    selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, "All"), selected = 300)
                                              )
-                                           ),
+                                             ),
                                            fluidRow(
-                                             column(12, h5("View filtered data in the next tab after filtering."))
+                                             column(12,
+                                                    actionButton("yrFilterBtn", "Filter", icon("filter"), 
+                                                                 style="color: #fff; background-color: #068587"),
+                                                    h5("View filtered data in the next tab after filtering.")
+                                                    )
                                            ),
                                            fluidRow(
                                              column(12, htmlOutput("allWarning"))
@@ -181,7 +222,11 @@ shinyUI(
                             tabPanel("View Data", fluid = TRUE,
                                      fluidPage(
                                        dataTableOutput('hdbWithVarsDT') %>%
-                                         withSpinner(type = 4, color = "#099090")
+                                         withSpinner(type = 4, color = "#099090"),
+                                       h5("Scroll right to see calculated variables."),
+                                       hr(),
+                                       h4("Data Description"),
+                                       tableOutput('VDdesc')
                                      )
                             ),
                             tabPanel("Transform Variables", fluid = TRUE, value = 'gwrstep4',
@@ -407,15 +452,12 @@ shinyUI(
                                            solidHeader = T,
                                            status = 'primary',
                                            downloadButton("downloadGWRResult", "Save Result"),
-                                           dataTableOutput("gwrResultDataTable")
+                                           dataTableOutput("gwrResultDataTable"),
+                                           hr(),
+                                           h4("Data Description"),
+                                           tableOutput('gwrDdesc')
                                          )
                                        ))),
-                                       tabPanel("Mixed GWR",
-                                                tags$style(type='text/css', '#mixedGWROutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'), 
-                                                fluidRow(column(
-                                                  12,
-                                                  verbatimTextOutput("mixedGWROutput")
-                                                ))),
                                        
                                        tabPanel("Regressions Comparison",
                                                 tags$style(type='text/css', '#globalRegressionOutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'), 
@@ -443,12 +485,33 @@ shinyUI(
                                                          verbatimTextOutput("gwrDiagnosticOutput")
                                                          )
                                                 )
-                                                )
-                                           )
-                                           )
+                                       ),
+                                       tabPanel("Mixed GWR",
+                                                tags$style(type='text/css', '#mixedGWROutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'), 
+                                                fluidRow(column(
+                                                  12,
+                                                  verbatimTextOutput("mixedGWROutput")
+                                                ))),
+                                       tabPanel("Mixed GWR Data Output", fluidRow(column(
+                                         12,
+                                         box(
+                                           title = "Mixed GWR Result Table",
+                                           width = 12,
+                                           solidHeader = T,
+                                           status = 'primary',
+                                           downloadButton("downloadMixedGWRResult", "Save Result"),
+                                           dataTableOutput("gwrMixedResultDataTable"),
+                                           hr(),
+                                           h4("Data Description"),
+                                           tableOutput('mgwrDdesc')
+                                         )
+                                       ))) #end of last tab Panel
+                                     )
+                            )
                             
-                                     ))
+                          )
                 )
+        )
         ##--------------------------------------------End of Main GWR---------------------------------------------------
       )
     )

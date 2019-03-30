@@ -136,3 +136,20 @@ preloadDataNames <- c("CBD_RafflesPlacePark",
                       "Parks",
                       "Sports_Facilities",
                       "Shopping_Malls")
+
+viewDatadesc <- data_frame("Name" = c("DIST2NEAREST_feature", "WITHINxRADIUS_feature"),
+                           "Description" = c("Distance of HDB apartment to nearest feature.",
+                                             "Number of features within x radius of HDB apartment.")
+                           )
+gwrDataOutputdesc <- data_frame("Name" = c("yhat", "Intercept", "_Coef", "_TV", "_PV"),
+                                "Description" = c("Estimated y values based on the GWR model.",
+                                                  "Model's intercept estimate.",
+                                                  "Mode's coefficient estimate for the given independent variable.",
+                                                  "The t-value of the relevant estimate.",
+                                                  "The p-value of the relevant estimate.")
+                                )
+mixedgwrDataOutputdesc <- data_frame("Suffix" = c("_Coef", "_L", "_F"),
+                                     "Description" = c("Coefficient estimate of observation, based on Mixed GWR model.",
+                                                       "Variable identified as local/non-global.",
+                                                       "Variable identified as fixed/global.")
+                                     )

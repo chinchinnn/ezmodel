@@ -7,13 +7,12 @@
 #    http://shiny.rstudio.com/
 #
 
-# library(shiny)
-# source("global.R", local = T)
 
 shinyServer(function(input, output, session) {
   ##-----------------------------OVERVIEW TEXT-------------------------------------------------
   output$overview <- renderText(
-    "<h1>Project Overview:</h1><br>User-customised Geographically Weighted Regression Model for HDB Resale Prices Data."
+    "<h1>Application Overview:</h1>"
+    #User-customised Geographically Weighted Regression Model for HDB Resale Prices Data.
   )
   
   ##--------------Reactive values object for storing all datasets--------------------------------------------
@@ -220,8 +219,8 @@ shinyServer(function(input, output, session) {
     temp <- filter(temp, FLAT_TYPE == input$flatType)
 
     if (input$sampleNum != "All"){
-      if(length(temp) > input$sampleNum){
-        result <- temp [sample(nrow(temp), input$sampleNum), ]
+      if(nrow(temp) > input$sampleNum){
+        result <- temp[sample(nrow(temp), input$sampleNum), ]
       }else {
         result <- temp
       }
@@ -556,6 +555,8 @@ shinyServer(function(input, output, session) {
   
   gwrResultTable <- data_frame()
   gwrResultTable_reactive <- reactiveValues(value = data_frame())
+  gwrMixedResultTable <- data_frame()
+  gwrMixedResultTable_reactive <- reactiveValues(value = data_frame())
   filedownload_name <- ""
   disable("downloadGWRResult")
   
@@ -636,13 +637,21 @@ shinyServer(function(input, output, session) {
     }
     
     gwrLocalResult <- as.data.frame(gwrModelResult$SDF)
+    if (exists("gwrMixedResult")){
+      cat("HERE")
+      gwrMixedDFResult <- as.data.frame(gwrMixedResult$SDF)
+    }
     
     gwrResultTable <- staged_data_transformed$value[,c(nonlmVars, targetVar, variableSelect)]
     gwrResultTable[,"yhat"] <- gwrLocalResult[,"yhat"]
     
     gwrResultTable[,"Intercept"] <- gwrLocalResult[,"Intercept"]
     gwrResultTable[,"Intercept_TV"] <- gwrLocalResult[,"Intercept_TV"]
-    
+    if (exists("gwrMixedResult")){
+      gwrMixedResultTable <- staged_data_transformed$value[,c(nonlmVars, targetVar, variableSelect)]
+      gwrMixedResultTable[, "Intercept_L"] <- gwrMixedDFResult[,"Intercept_L"]
+    }
+    ##FOR GWR
     for (dim_ in variableSelect) {
       gwrResultTable[, paste0(dim_, "_Coef")] <- gwrLocalResult[, dim_]
       gwrResultTable[, paste0(dim_, "_TV")] <- gwrLocalResult[, paste0(dim_, "_TV")]
@@ -660,7 +669,17 @@ shinyServer(function(input, output, session) {
         (1- pt(abs(gwrLocalResult[, paste0(dim_, "_TV")]), df = nrow(gwrLocalResult)-1)) * 2
       
     }
+    if (exists("gwrMixedResult")){
+    ##FOR MIXED GWR
+    for (dim_ in variableSelect) {
+      gwrMixedResultTable[, paste0(dim_, "_Coef_L")] <- gwrMixedDFResult[, paste0(dim_, "_L")]
+    }
     
+    for (dim_ in globalvariableSelect) {
+      gwrMixedResultTable[, paste0(dim_, "_Coef_F")] <- gwrMixedDFResult[, paste0(dim_, "_F")]
+    }
+    ###############
+    }
     year <- paste0(input$fromYr, "_to_", input$toYr)
     output$showYear <- renderText({
       year
@@ -682,6 +701,10 @@ shinyServer(function(input, output, session) {
     
     gwrResultTable_reactive$value <- gwrResultTable
     enable("downloadGWRResult") # enable for download
+    if (exists("gwrMixedResult")){
+    gwrMixedResultTable_reactive$value <- gwrMixedResultTable
+    enable("downloadMixedGWRResult") # enable for download
+    }
     
     filedownload_name <<- paste0(variableSelect, collapse = '')
     filedownload_name <<- paste0("GWR_", year, "_", targetVar, "_", filedownload_name, collapse = '')
@@ -805,6 +828,22 @@ shinyServer(function(input, output, session) {
       )
   })
   
+  output$gwrMixedResultDataTable <- renderDataTable({
+    
+    gwrMixedResultTable_reactive$value %>%
+      datatable(
+        class = "nowrap hover row-border",
+        escape = FALSE,
+        options = list(
+          dom = 'ftip',
+          scrollX = TRUE,
+          sScrollX = "100%",
+          scrollX = TRUE,
+          server = FALSE
+        )
+      )
+  })
+  
   output$downloadGWRResult <- downloadHandler(
     filename = function() {
       paste(filedownload_name, ".csv", sep="")
@@ -813,6 +852,25 @@ shinyServer(function(input, output, session) {
       write_csv(gwrResultTable_reactive$value, file)
     }
   )
+  
+  output$downloadMixedGWRResult <- downloadHandler(
+    filename = function() {
+      paste(filedownload_name, ".csv", sep="")
+    },
+    content = function(file) {
+      write_csv(gwrMixedResultTable_reactive$value, file)
+    }
+  )
+  
+  output$VDdesc <- renderTable({
+    viewDatadesc
+  }, bordered = T, striped = T)
+  output$gwrDdesc <- renderTable({
+    gwrDataOutputdesc
+  }, bordered = T, striped = T)
+  output$mgwrDdesc <- renderTable({
+    mixedgwrDataOutputdesc
+  }, bordered = T, striped = T)
   
   # Map Drawing Exercise
   shapeData_reactives <- reactiveValues()
@@ -921,7 +979,7 @@ shinyServer(function(input, output, session) {
       tmap_mode("view")
       
       ##setting up colour palette
-      colorPalette <- "-Blues"
+      colorPalette <- "-Greens"
       
       
       param_Plot <-
