@@ -346,7 +346,6 @@ shinyUI(
                                        tabPanel(
                                          "Map Result",
                                          fluidRow(
-                                           column(1),
                                            column(
                                              3,
                                              selectInput(
@@ -356,7 +355,7 @@ shinyUI(
                                              )
                                            ),
                                            column(
-                                             3,
+                                             2,
                                              HTML(
                                                '<div class="info-box-content">
                                                <span class="info-box-text">YEAR: </span>
@@ -368,7 +367,7 @@ shinyUI(
                                              ),
                                            #box(title="", status="primary", textOutput("showYear"))),
                                            column(
-                                             4,
+                                             3,
                                              HTML(
                                                '<div class="info-box-content">
                                                <span class="info-box-text">Model R-Square: </span>
@@ -377,9 +376,19 @@ shinyUI(
                                                </span>
                                                </div>'
                                              )
-                                             ),
-                                           column(1)
-                                             ),
+                                           ),
+                                           column(
+                                             4,
+                                             HTML(
+                                               '<div class="info-box-content">
+                                                     <span class="info-box-text">Adjusted R-Square: </span>
+                                                     <span class="info-box-number">
+                                                     <div id="showadjRSquare" class="shiny-text-output"></div>
+                                                     </span>
+                                                     </div>'
+                                             )
+                                           )
+                                         ),
                                          fluidRow(
                                            column(6,
                                                   leafletOutput("parameterMap") %>% withSpinner(type =4, color = "#099090")),

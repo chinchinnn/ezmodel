@@ -665,7 +665,10 @@ shinyServer(function(input, output, session) {
     ssr <- sqrt(sum((gwrResultTable$yhat - ymean) ** 2))
     sst <- sqrt(sum((ymean - y) ** 2))
     output$showRSquare <- renderText({
-      paste0(as.character(round((ssr/sst),3)*100), "%")
+      paste0(as.character(round((ssr/sst),4)*100), "%")
+    })
+    output$showadjRSquare <- renderText({
+      paste0(as.character(round(gwrModelResult$GW.diagnostic$gwR2.adj * 100, 2)), "%")
     })
     
     updateSelectInput(session, inputId="paramPlot_select", label="Select Variable to Plot",
@@ -683,9 +686,6 @@ shinyServer(function(input, output, session) {
     })
     
     output$globalRegressionDiagnosticOutput <- renderPrint({
-      # for(item in names(gwrModelResult$GW.diagnostic)){
-      #   print(paste0(item, ": ", gwrModelResult$GW.diagnostic[[item]]))
-      # }
       var.n<-length(gwrModelResult$lm$coefficients)
       dp.n<-length(gwrModelResult$lm$residuals)
       cat("**********Extra Diagnostic information**********\n")
@@ -706,7 +706,7 @@ shinyServer(function(input, output, session) {
     output$gwrVerbatimOutput <- renderPrint({
       var.n<-length(gwrModelResult$lm$coefficients)
       dp.n<-length(gwrModelResult$lm$residuals)
-      cat("Kernel function:", gwrModelResult$GW.arguments$kernel, "\n")
+      cat("\nKernel function:", gwrModelResult$GW.arguments$kernel, "\n")
       if(gwrModelResult$GW.arguments$adaptive)
         cat("Adaptive bandwidth: ", gwrModelResult$GW.arguments$bw, " (number of nearest neighbours)\n", sep="")
       else
@@ -751,6 +751,8 @@ shinyServer(function(input, output, session) {
         rnames[i]<-paste("   ",rnames[i],sep="")
       rownames(CM) <-rnames
       printCoefmat(CM)
+      cat("\n\nR-square value: ",gwrModelResult$GW.diagnostic$gw.R2,"\n")
+      cat("Adjusted R-square value: ",gwrModelResult$GW.diagnostic$gwR2.adj,"\n")	
     })
     
     output$gwrDiagnosticOutput <- renderPrint({
@@ -766,8 +768,6 @@ shinyServer(function(input, output, session) {
             gwrModelResult$GW.diagnostic$AICc, "\n")
         cat("AIC:", gwrModelResult$GW.diagnostic$AIC, "\n")
         cat("Residual sum of squares:", gwrModelResult$GW.diagnostic$RSS.gw, "\n")
-        cat("R-square value: ",gwrModelResult$GW.diagnostic$gw.R2,"\n")
-        cat("Adjusted R-square value: ",gwrModelResult$GW.diagnostic$gwR2.adj,"\n")	
       }
     })
     
