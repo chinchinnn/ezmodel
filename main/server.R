@@ -638,7 +638,6 @@ shinyServer(function(input, output, session) {
     
     gwrLocalResult <- as.data.frame(gwrModelResult$SDF)
     if (exists("gwrMixedResult")){
-      cat("HERE")
       gwrMixedDFResult <- as.data.frame(gwrMixedResult$SDF)
     }
     
@@ -698,6 +697,8 @@ shinyServer(function(input, output, session) {
     
     updateSelectInput(session, inputId="paramPlot_select", label="Select Variable to Plot",
                       choices = c("Fitted Resale Price"="yhat", variableSelect, globalvariableSelect))
+    updateSelectInput(session, inputId="mixedparamPlot_select", label="Select Variable to Plot",
+                      choices = c(variableSelect[!variableSelect %in% globalvariableSelect]))
     
     gwrResultTable_reactive$value <- gwrResultTable
     enable("downloadGWRResult") # enable for download
@@ -806,6 +807,22 @@ shinyServer(function(input, output, session) {
         gwrMixedResult
       } else {
         return(c("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run."))
+      }
+    })
+    
+    output$noMixedWarning1 <- renderUI({
+      if(exists("gwrMixedResult")){
+        return(HTML("<br/>"))
+      } else {
+        return(HTML("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.<br/>"))
+      }
+    })
+    
+    output$noMixedWarning2 <- renderUI({
+      if(exists("gwrMixedResult")){
+        return(HTML("<br/>"))
+      } else {
+        return(HTML("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.<br/>"))
       }
     })
     
@@ -994,6 +1011,86 @@ shinyServer(function(input, output, session) {
       
       tmap_leaflet(param_Plot)
     }, error = function(err) {
+    })
+  })
+  
+  # Map Drawing Exercise
+  mixedshapeData_reactives <- reactiveValues()
+  
+  observe({
+    if (nrow(gwrMixedResultTable_reactive$value) == 0) {
+      mixedshapeData_reactives$value = 0
+      return()
+    }
+    #Prepare plot data for isoline map
+    
+    mixed_isoline_sf = st_as_sf(gwrMixedResultTable_reactive$value,
+                          coords = c("X", "Y")) %>% st_set_crs(3414)
+    
+    #Chage plot data into spatial data format
+    mixed_plot_data_sp = as(mixed_isoline_sf, "Spatial")
+    
+    #Replacing point boundary extent with that of polygon
+    mixed_plot_data_sp@bbox = mpsz_sp@bbox
+    
+    ##Create an empty grid
+    mixed_grd              <- as.data.frame(spsample(mixed_plot_data_sp, "regular", n=10000))
+    names(mixed_grd)       <- c("X", "Y")
+    coordinates(mixed_grd) <- c("X", "Y")
+    gridded(mixed_grd)     <- TRUE  # Create SpatialPixel object
+    fullgrid(mixed_grd)    <- TRUE  # Create SpatialGrid object
+    
+    #Add P's projection information to the empty grid
+    proj4string(mixed_grd) = proj4string(mpsz_sp)
+    
+    mixedshapeData_reactives$mixed_plot_data_sp <- mixed_plot_data_sp
+    mixedshapeData_reactives$mixed_grd <- mixed_grd
+    
+    
+    mixedshapeData_reactives$value = 1
+  })
+  
+  
+  output$mixedparameterMap <- renderLeaflet({
+    tryCatch( {
+      if (mixedshapeData_reactives$value == 0) {
+        return()
+      }
+      
+      variableSelected <- input$mixedparamPlot_select
+      variableSelected <- paste0(variableSelected, "_Coef_L")
+      
+      #Interpolate the grid cells using a power value of 2 (idp=2.0)
+      plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), mixedshapeData_reactives$mixed_plot_data_sp, newdata=mixedshapeData_reactives$mixed_grd, idp=2)
+      
+      # Convert to raster object then clip to Polygon
+      r       <- raster(plot_idw)
+      r.m     <- mask(r, mpsz_sp)
+      
+      tmap_mode("view")
+      
+      ##setting up colour palette
+      if (min(gwrMixedResultTable_reactive$value %>% dplyr::select(UQ(sym(variableSelected)))) < 0)
+        colorPalette <- "RdBu"
+      else
+        colorPalette <- "Blues"
+      
+      isoline_title <- variableSelected
+      isoline_title <- paste0(input$mixedparamPlot_select, "'s Local Coefficient")
+
+      param_Plot <-
+        tm_shape(r.m, paste0(isoline_title, "'s Isoline Raster")) +
+        tm_raster(n=4,palette = colorPalette, title=isoline_title, style = "pretty") +
+        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8) + tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6) +
+        tm_shape(mixedshapeData_reactives$mixed_plot_data_sp, paste0(isoline_title, "'s Obs Dots")) +
+        tm_dots(n=4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+                id='FULL_ADRESS',popup.vars=c(setNames(variableSelected, input$mixedparamPlot_select))) +
+        tm_legend(legend.outside=TRUE)+
+        tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE, view.legend.position = c("right", "bottom"))
+      
+      tmap_leaflet(param_Plot)
+    }, error = function(err) {
+      
     })
   })
   

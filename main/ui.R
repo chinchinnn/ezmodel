@@ -89,55 +89,63 @@ shinyUI(
                           tabsetPanel(
                             tabPanel("Upload Data", fluid = TRUE,
                                      sidebarLayout(
-                                       sidebarPanel(
-                                         h4(strong("Required Fields:")),
-                                         fluidRow(
-                                           column(8,
-                                                  textInput("variableName",
-                                                            label = "Name of Variable (No Spaces):",
-                                                            placeholder = "E.g. MY_FEATURE")
-                                                  ),
-                                           column(4,
-                                                  textInput("epsg",
-                                                            label = "EPSG Code:",
-                                                            placeholder = "E.g. 4326 or 3414")
-                                                  )
-                                         ),
-                                         h4(strong("Upload Data Here:")),
-                                         h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
-                                         # h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
-                                         HTML("<h5 style = 'color: #068587'>Click on the <strong>Upload</strong> button below to submit.</h5>"),
-                                         uiOutput('resettableInput'),
-                                         box(width = 12, collapsed = TRUE, collapsible = TRUE,
-                                             title = "CSV upload options",
-                                             checkboxInput("header", "Header (column names in first row)", TRUE),
-                                             radioButtons("delim", "Delimiter",
-                                                          choices = c(Comma = ",",
-                                                                      Semicolon = ";",
-                                                                      Tab = "\t"),
-                                                          selected = ","),
-                                             radioButtons("quote", "Quote",
-                                                          choices = c(None = "",
-                                                                      "Double Quote" = '"',
-                                                                      "Single Quote" = "'"),
-                                                          selected = '"')
-                                         ),
-                                         fluidRow(
-                                           column(4,
-                                                  actionButton("uploadSubmit", "Upload", icon("paper-plane"), 
-                                                               style="color: #fff; background-color: #068587")
+                                       sidebarPanel(width = 5,
+                                         tabBox(
+                                           width = 12,
+                                           tabPanel(
+                                             title = "Upload",
+                                             h4(strong("Required Fields:")),
+                                             fluidRow(
+                                               column(8,
+                                                      textInput("variableName",
+                                                                label = "Name of Variable (No Spaces):",
+                                                                placeholder = "E.g. MY_FEATURE")
+                                               ),
+                                               column(4,
+                                                      textInput("epsg",
+                                                                label = "EPSG Code:",
+                                                                placeholder = "E.g. 4326")
+                                               )
+                                             ),
+                                             h4(strong("Upload Data Here:")),
+                                             h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
+                                             # h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
+                                             HTML("<h5 style = 'color: #068587'>Click on the <strong>Upload</strong> button below to submit.</h5>"),
+                                             uiOutput('resettableInput'),
+                                             box(width = 12, collapsed = TRUE, collapsible = TRUE,
+                                                 title = "CSV upload options",
+                                                 checkboxInput("header", "Header (column names in first row)", TRUE),
+                                                 radioButtons("delim", "Delimiter",
+                                                              choices = c(Comma = ",",
+                                                                          Semicolon = ";",
+                                                                          Tab = "\t"),
+                                                              selected = ","),
+                                                 radioButtons("quote", "Quote",
+                                                              choices = c(None = "",
+                                                                          "Double Quote" = '"',
+                                                                          "Single Quote" = "'"),
+                                                              selected = '"')
+                                             ),
+                                             fluidRow(
+                                               column(4,
+                                                      actionButton("uploadSubmit", "Upload", icon("paper-plane"), 
+                                                                   style="color: #fff; background-color: #068587")
+                                               ),
+                                               column(2),
+                                               column(6,
+                                                      actionButton("resetUploads", "Clear Upload Fields")
+                                               )
+                                             )
                                            ),
-                                           column(2),
-                                           column(6,
-                                                  actionButton("resetUploads", "Clear Upload Fields")
+                                           tabPanel(
+                                             title = "Choose Datasets",
+                                             h4(strong("Choose Datasets for Analysis Here:")),
+                                             checkboxGroupInput("inCheckboxGroup2", "Input checkbox 2",
+                                                                c("Item A"))
                                            )
-                                         ),
-                                         tags$hr(),
-                                         h4(strong("Choose Datasets for Analysis Here:")),
-                                         checkboxGroupInput("inCheckboxGroup2", "Input checkbox 2",
-                                                            c("Item A"))
+                                         )
                                        ),
-                                       mainPanel(
+                                       mainPanel(width = 7,
                                          br(),
                                          box(
                                            title = "Your Uploaded Data Will Appear Here:",
@@ -194,7 +202,7 @@ shinyUI(
                                              column(12,
                                                     actionButton("yrFilterBtn", "Filter", icon("filter"), 
                                                                  style="color: #fff; background-color: #068587"),
-                                                    h5("View filtered data in the next tab after filtering.")
+                                                    HTML("&nbsp;&nbsp;View filtered data in the next tab after filtering.")
                                                     )
                                            ),
                                            fluidRow(
@@ -392,7 +400,7 @@ shinyUI(
                                        title = "GWR Result",
                                        width = 12,
                                        tabPanel(
-                                         "Map Result",
+                                         "GWR Map Result",
                                          fluidRow(
                                            column(
                                              3,
@@ -486,26 +494,48 @@ shinyUI(
                                                          )
                                                 )
                                        ),
-                                       tabPanel("Mixed GWR",
-                                                tags$style(type='text/css', '#mixedGWROutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'), 
+                                       tabPanel("Mixed GWR Map Result",
+                                                tags$style(type='text/css', '#mixedGWROutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'),
+                                                uiOutput("noMixedWarning1"),
+                                                fluidRow(
+                                                  column(
+                                                    3,
+                                                    selectInput(
+                                                      inputId = "mixedparamPlot_select",
+                                                      label = "Select Variable to Plot",
+                                                      choices = c()
+                                                    ),
+                                                    column(9)
+                                                  )
+                                                ),
+                                                fluidRow(
+                                                  column(6,
+                                                         leafletOutput("mixedparameterMap") %>% withSpinner(type =4, color = "#099090")),
+                                                  column(6)
+                                                  )
+                                                ),
+                                       tabPanel("Mixed GWR Data Output", 
+                                                uiOutput("noMixedWarning2"),
+                                                fluidRow(column(
+                                                  12,
+                                                  box(
+                                                    title = "Mixed GWR Result Table",
+                                                    width = 12,
+                                                    solidHeader = T,
+                                                    status = 'primary',
+                                                    downloadButton("downloadMixedGWRResult", "Save Result"),
+                                                    dataTableOutput("gwrMixedResultDataTable"),
+                                                    hr(),
+                                                    h4("Data Description"),
+                                                    tableOutput('mgwrDdesc')
+                                                  )
+                                                ))),
+                                       tabPanel("Mixed GWR Diagnostics",
                                                 fluidRow(column(
                                                   12,
                                                   verbatimTextOutput("mixedGWROutput")
-                                                ))),
-                                       tabPanel("Mixed GWR Data Output", fluidRow(column(
-                                         12,
-                                         box(
-                                           title = "Mixed GWR Result Table",
-                                           width = 12,
-                                           solidHeader = T,
-                                           status = 'primary',
-                                           downloadButton("downloadMixedGWRResult", "Save Result"),
-                                           dataTableOutput("gwrMixedResultDataTable"),
-                                           hr(),
-                                           h4("Data Description"),
-                                           tableOutput('mgwrDdesc')
-                                         )
-                                       ))) #end of last tab Panel
+                                                ))
+                                                )#end of last tab Panel
                                      )
                             )
                             
