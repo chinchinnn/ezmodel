@@ -812,7 +812,18 @@ shinyServer(function(input, output, session) {
     
     output$noMixedWarning1 <- renderUI({
       if(exists("gwrMixedResult")){
-        return(HTML("<br/>"))
+        fluidRow(
+          column(
+            3,
+            selectInput(
+              inputId = "mixedparamPlot_select",
+              label = "Select Variable to Plot",
+              choices = c()
+            ),
+            column(9)
+          )
+        )
+               
       } else {
         return(HTML("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.<br/>"))
       }
@@ -820,7 +831,20 @@ shinyServer(function(input, output, session) {
     
     output$noMixedWarning2 <- renderUI({
       if(exists("gwrMixedResult")){
-        return(HTML("<br/>"))
+        fluidRow(column(
+          12,
+          box(
+            title = "Mixed GWR Result Table",
+            width = 12,
+            solidHeader = T,
+            status = 'primary',
+            downloadButton("downloadMixedGWRResult", "Save Result"),
+            dataTableOutput("gwrMixedResultDataTable"),
+            hr(),
+            h4("Data Description"),
+            tableOutput('mgwrDdesc')
+          )
+        ))
       } else {
         return(HTML("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.<br/>"))
       }

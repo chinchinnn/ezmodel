@@ -497,17 +497,7 @@ shinyUI(
                                        tabPanel("Mixed GWR Map Result",
                                                 tags$style(type='text/css', '#mixedGWROutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'),
                                                 uiOutput("noMixedWarning1"),
-                                                fluidRow(
-                                                  column(
-                                                    3,
-                                                    selectInput(
-                                                      inputId = "mixedparamPlot_select",
-                                                      label = "Select Variable to Plot",
-                                                      choices = c()
-                                                    ),
-                                                    column(9)
-                                                  )
-                                                ),
+                                                
                                                 fluidRow(
                                                   column(6,
                                                          leafletOutput("mixedparameterMap") %>% withSpinner(type =4, color = "#099090")),
@@ -515,21 +505,23 @@ shinyUI(
                                                   )
                                                 ),
                                        tabPanel("Mixed GWR Data Output", 
-                                                uiOutput("noMixedWarning2"),
-                                                fluidRow(column(
-                                                  12,
-                                                  box(
-                                                    title = "Mixed GWR Result Table",
-                                                    width = 12,
-                                                    solidHeader = T,
-                                                    status = 'primary',
-                                                    downloadButton("downloadMixedGWRResult", "Save Result"),
-                                                    dataTableOutput("gwrMixedResultDataTable"),
-                                                    hr(),
-                                                    h4("Data Description"),
-                                                    tableOutput('mgwrDdesc')
-                                                  )
-                                                ))),
+                                                uiOutput("noMixedWarning2")
+                                                # fluidRow(column(
+                                                #   12,
+                                                #   box(
+                                                #     title = "Mixed GWR Result Table",
+                                                #     width = 12,
+                                                #     solidHeader = T,
+                                                #     status = 'primary',
+                                                #     downloadButton("downloadMixedGWRResult", "Save Result"),
+                                                #     dataTableOutput("gwrMixedResultDataTable"),
+                                                #     hr(),
+                                                #     h4("Data Description"),
+                                                #     tableOutput('mgwrDdesc')
+                                                #   )
+                                                # ))
+                                       
+                                          ),
                                        tabPanel("Mixed GWR Diagnostics",
                                                 fluidRow(column(
                                                   12,
