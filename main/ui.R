@@ -30,7 +30,7 @@ shinyUI(
           Shiny.onInputChange(variableName, null);
           });
           "
-      )),
+        )),
       tabItems(
         ##-------------------------------------------Tab of Overview-----------------------------------------------------
         tabItem(tabName = "overview",
@@ -38,17 +38,17 @@ shinyUI(
                           htmlOutput("overview"),
                           box(title = "Introduction", status = "primary", solidHeader = T,
                               width = 12,
-                            column(12,
-                                   p("Currently, existing hedonic pricing models that use linear regression fail to
+                              column(12,
+                                     p("Currently, existing hedonic pricing models that use linear regression fail to
                                      take into account spatial variations among the features in the local surroundings
                                      which may be key contributors to the housing prices, hence there is a need for a
                                      geographically weighted regression (GWR) model to more accurately analyse the
                                      effects of local spatial variations on housing prices."),
-                                   p("This appplication seeks to allow users flexibility in calibrating a GWR model,
+                                     p("This appplication seeks to allow users flexibility in calibrating a GWR model,
                                       with a focus on HDB resale prices."),
-                                   p("An extra feature in this app allows users to also calibrate Semiparametric GWR models
+                                     p("An extra feature in this app allows users to also calibrate Semiparametric GWR models
                                       through selecting both global and local parameters to be used in the regression model.")
-                                   )
+                              )
                           ),
                           box(title = "Using the App", status = "primary", solidHeader = T,
                               width = 12,
@@ -59,25 +59,25 @@ shinyUI(
                                      HTML("<p>Click on the <strong>GWR Model</strong> button in the side menu to launch the
                                         main app, and follow through the applications' tabs and steps below:</p>"),
                                      HTML("<ol>"),
-                                       HTML("<li><strong>Upload</strong> any dataset containing point data of features in Singapore that
+                                     HTML("<li><strong>Upload</strong> any dataset containing point data of features in Singapore that
                                                 might be relevant to HDB resale prices. (Optional)</li>"),
-                                       HTML("<li>Alternatively, scroll down on the same page to <strong>find datasets</strong> that have been preloaded
+                                     HTML("<li>Alternatively, scroll down on the same page to <strong>find datasets</strong> that have been preloaded
                                                onto the server, to experiment with the app's features.</li>"),
-                                       HTML("<li><strong>Define</strong> variables in the next tab based on the selectedfeatures'
+                                     HTML("<li><strong>Define</strong> variables in the next tab based on the selectedfeatures'
                                                geographical relationship with individual resale price observation.</li>"),
-                                       HTML("<li><strong>View data</strong> in the following tab to take a look at the
+                                     HTML("<li><strong>View data</strong> in the following tab to take a look at the
                                                variables that were generated through the calculations.</li>"),
-                                       HTML("<li><strong>Transform</strong> the values of any variables that exhibit non-normal distributions 
+                                     HTML("<li><strong>Transform</strong> the values of any variables that exhibit non-normal distributions 
                                                by observing the histogram plots of the variable values.</li>"),
-                                       HTML("<li>Users can now <strong>select</strong> which independent variables to include
+                                     HTML("<li>Users can now <strong>select</strong> which independent variables to include
                                                 in both the Full and Semiparametric GWR models. <em>(Note: do view the correlation plots
                                                 to identify dependent variables that are highly correlated with each other 
                                                to prevent the issue of multicollinearity in the regression model.)</em></li>"),
-                                       HTML("<li>Finally, <strong>run the GWR model</strong> to derive the coefficient and dependent
+                                     HTML("<li>Finally, <strong>run the GWR model</strong> to derive the coefficient and dependent
                                                 value estimates, along with model diagnostics information.</li>"),
                                      HTML("</ol>")
-                                     )
                               )
+                          )
                 )
                 
         ),
@@ -90,84 +90,84 @@ shinyUI(
                             tabPanel("Upload Data", fluid = TRUE,
                                      sidebarLayout(
                                        sidebarPanel(width = 5,
-                                         tabBox(
-                                           width = 12,
-                                           tabPanel(
-                                             title = "Upload",
-                                             h4(strong("Required Fields:")),
-                                             fluidRow(
-                                               column(8,
-                                                      textInput("variableName",
-                                                                label = "Name of Variable (No Spaces):",
-                                                                placeholder = "E.g. MY_FEATURE")
-                                               ),
-                                               column(4,
-                                                      textInput("epsg",
-                                                                label = "EPSG Code:",
-                                                                placeholder = "E.g. 4326")
-                                               )
-                                             ),
-                                             h4(strong("Upload Data Here:")),
-                                             h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
-                                             # h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
-                                             HTML("<h5 style = 'color: #068587'>Click on the <strong>Upload</strong> button below to submit.</h5>"),
-                                             uiOutput('resettableInput'),
-                                             box(width = 12, collapsed = TRUE, collapsible = TRUE,
-                                                 title = "CSV upload options",
-                                                 checkboxInput("header", "Header (column names in first row)", TRUE),
-                                                 radioButtons("delim", "Delimiter",
-                                                              choices = c(Comma = ",",
-                                                                          Semicolon = ";",
-                                                                          Tab = "\t"),
-                                                              selected = ","),
-                                                 radioButtons("quote", "Quote",
-                                                              choices = c(None = "",
-                                                                          "Double Quote" = '"',
-                                                                          "Single Quote" = "'"),
-                                                              selected = '"')
-                                             ),
-                                             fluidRow(
-                                               column(4,
-                                                      actionButton("uploadSubmit", "Upload", icon("paper-plane"), 
-                                                                   style="color: #fff; background-color: #068587")
-                                               ),
-                                               column(2),
-                                               column(6,
-                                                      actionButton("resetUploads", "Clear Upload Fields")
-                                               )
-                                             )
-                                           ),
-                                           tabPanel(
-                                             title = "Choose Datasets",
-                                             h4(strong("Choose Datasets for Analysis Here:")),
-                                             checkboxGroupInput("inCheckboxGroup2", "Input checkbox 2",
-                                                                c("Item A"))
-                                           )
-                                         )
+                                                    tabBox(
+                                                      width = 12,
+                                                      tabPanel(
+                                                        title = "Upload",
+                                                        h4(strong("Required Fields:")),
+                                                        fluidRow(
+                                                          column(8,
+                                                                 textInput("variableName",
+                                                                           label = "Name of Variable (No Spaces):",
+                                                                           placeholder = "E.g. MY_FEATURE")
+                                                          ),
+                                                          column(4,
+                                                                 textInput("epsg",
+                                                                           label = "EPSG Code:",
+                                                                           placeholder = "E.g. 4326")
+                                                          )
+                                                        ),
+                                                        h4(strong("Upload Data Here:")),
+                                                        h5(strong("Please ensure uploaded data contains point location data. For CSV Files, location data should have columns labelled X and Y accordingly.")),
+                                                        # h5("(e.g. Longitude data column labelled X, Latitude data column labelled Y)"),
+                                                        HTML("<h5 style = 'color: #068587'>Click on the <strong>Upload</strong> button below to submit.</h5>"),
+                                                        uiOutput('resettableInput'),
+                                                        box(width = 12, collapsed = TRUE, collapsible = TRUE,
+                                                            title = "CSV upload options",
+                                                            checkboxInput("header", "Header (column names in first row)", TRUE),
+                                                            radioButtons("delim", "Delimiter",
+                                                                         choices = c(Comma = ",",
+                                                                                     Semicolon = ";",
+                                                                                     Tab = "\t"),
+                                                                         selected = ","),
+                                                            radioButtons("quote", "Quote",
+                                                                         choices = c(None = "",
+                                                                                     "Double Quote" = '"',
+                                                                                     "Single Quote" = "'"),
+                                                                         selected = '"')
+                                                        ),
+                                                        fluidRow(
+                                                          column(4,
+                                                                 actionButton("uploadSubmit", "Upload", icon("paper-plane"), 
+                                                                              style="color: #fff; background-color: #068587")
+                                                          ),
+                                                          column(2),
+                                                          column(6,
+                                                                 actionButton("resetUploads", "Clear Upload Fields")
+                                                          )
+                                                        )
+                                                      ),
+                                                      tabPanel(
+                                                        title = "Choose Datasets",
+                                                        h4(strong("Choose Datasets for Analysis Here:")),
+                                                        checkboxGroupInput("inCheckboxGroup2", "Input checkbox 2",
+                                                                           c("Item A"))
+                                                      )
+                                                    )
                                        ),
                                        mainPanel(width = 7,
-                                         br(),
-                                         box(
-                                           title = "Your Uploaded Data Will Appear Here:",
-                                           width = 12,
-                                           solidHeader = T,
-                                           status = 'primary',
-                                           div(
-                                             style = 'overflow-x: scroll',
-                                             selectInput("viewDatasetChoice", "Select Dataset to View",
-                                                         c()),
-                                             uiOutput("featTitle"),
-                                             dataTableOutput('userdata') %>%
-                                               withSpinner(type = 4, color = "#099090"),
-                                             leafletOutput(outputId = "userMap") %>%
-                                               withSpinner(type = 4, color = "#099090")
-                                           )
-                                         ),
-                                         h4("To upload multiple sets of data:"),
-                                         tags$ol(
-                                           tags$li("After uploading one dataset, press \"Clear Upload Fields\" button to clear input fields."),
-                                           tags$li("Add a new Shapefile/CSV and press the \"Upload\" button to add the new dataset.")
-                                         )
+                                                 br(),
+                                                 box(
+                                                   title = "Your Uploaded Data Will Appear Here:",
+                                                   width = 12,
+                                                   solidHeader = T,
+                                                   status = 'primary',
+                                                   div(
+                                                     style = 'overflow-x: scroll',
+                                                     selectInput("viewDatasetChoice", "Select Dataset to View",
+                                                                 c()),
+                                                     uiOutput("featTitle"),
+                                                     dataTableOutput('userdata') %>%
+                                                       withSpinner(type = 4, color = "#099090"),
+                                                     leafletOutput(outputId = "userMap") %>%
+                                                       withSpinner(type = 4, color = "#099090")
+                                                   )
+                                                 ),
+                                                 h4("To upload multiple sets of data:"),
+                                                 tags$ol(
+                                                   tags$li("After uploading one dataset, press \"Clear Upload Fields\" button to clear input fields."),
+                                                   tags$li("Add a new Shapefile/CSV and press the \"Upload\" button to add the new dataset.")
+                                                 )
                                        )
                                      )
                             ),
@@ -197,13 +197,13 @@ shinyUI(
                                              column(2,
                                                     selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, "All"), selected = 300)
                                              )
-                                             ),
+                                           ),
                                            fluidRow(
                                              column(12,
                                                     actionButton("yrFilterBtn", "Filter", icon("filter"), 
                                                                  style="color: #fff; background-color: #068587"),
                                                     HTML("&nbsp;&nbsp;View filtered data in the next tab after filtering.")
-                                                    )
+                                             )
                                            ),
                                            fluidRow(
                                              column(12, htmlOutput("allWarning"))
@@ -416,7 +416,7 @@ shinyUI(
                                                </span>
                                                </div>'
                                              )
-                                             ),
+                                           ),
                                            #box(title="", status="primary", textOutput("showYear"))),
                                            column(
                                              3,
@@ -451,10 +451,10 @@ shinyUI(
                                            column(1),
                                            column(10,
                                                   HTML("<center><strong>Explore the layers of the map on the right to look at isoline maps of local R-square/p-values</strong></center>")
-                                                  ),
+                                           ),
                                            column(1)
                                          )
-                                           ),
+                                       ),
                                        tabPanel("GWR Data Output", fluidRow(column(
                                          12,
                                          box(
@@ -490,11 +490,11 @@ shinyUI(
                                                   column(6,
                                                          h5("Linear Regression Diagnostics"),
                                                          verbatimTextOutput("globalRegressionDiagnosticOutput")
-                                                         ),
+                                                  ),
                                                   column(6,
                                                          h5("GWR (Non-mixed) Diagnostics"),
                                                          verbatimTextOutput("gwrDiagnosticOutput")
-                                                         )
+                                                  )
                                                 )
                                        ),
                                        tabPanel("Mixed GWR Map Result",
@@ -506,7 +506,7 @@ shinyUI(
                                                 #          leafletOutput("mixedparameterMap") %>% withSpinner(type =4, color = "#099090")),
                                                 #   column(6)
                                                 #   )
-                                                ),
+                                       ),
                                        tabPanel("Mixed GWR Data Output", 
                                                 uiOutput("noMixedWarning2")
                                                 # fluidRow(column(
@@ -523,14 +523,14 @@ shinyUI(
                                                 #     tableOutput('mgwrDdesc')
                                                 #   )
                                                 # ))
-                                       
-                                          ),
+                                                
+                                       ),
                                        tabPanel("Mixed GWR Diagnostics",
                                                 fluidRow(column(
                                                   12,
                                                   verbatimTextOutput("mixedGWROutput")
                                                 ))
-                                                )#end of last tab Panel
+                                       )#end of last tab Panel
                                      ),
                                      box(width = 12,
                                          h5("Both Non-Mixed and Mixed GWR Models will be run."),
