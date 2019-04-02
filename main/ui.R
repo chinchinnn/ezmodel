@@ -496,13 +496,13 @@ shinyUI(
                                        ),
                                        tabPanel("Mixed GWR Map Result",
                                                 tags$style(type='text/css', '#mixedGWROutput {background-color: #068587; color: white; font-family: "TW Cen MT";}'),
-                                                uiOutput("noMixedWarning1"),
+                                                uiOutput("noMixedWarning1")
                                                 
-                                                fluidRow(
-                                                  column(6,
-                                                         leafletOutput("mixedparameterMap") %>% withSpinner(type =4, color = "#099090")),
-                                                  column(6)
-                                                  )
+                                                # fluidRow(
+                                                #   column(6,
+                                                #          leafletOutput("mixedparameterMap") %>% withSpinner(type =4, color = "#099090")),
+                                                #   column(6)
+                                                #   )
                                                 ),
                                        tabPanel("Mixed GWR Data Output", 
                                                 uiOutput("noMixedWarning2")
