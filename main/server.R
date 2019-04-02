@@ -646,6 +646,7 @@ shinyServer(function(input, output, session) {
     
     gwrResultTable[,"Intercept"] <- gwrLocalResult[,"Intercept"]
     gwrResultTable[,"Intercept_TV"] <- gwrLocalResult[,"Intercept_TV"]
+    gwrResultTable[, "Local_R2"] <- gwrLocalResult[, "Local_R2"]
     if (exists("gwrMixedResult")){
       gwrMixedResultTable <- staged_data_transformed$value[,c(nonlmVars, targetVar, variableSelect)]
       gwrMixedResultTable[, "Intercept_L"] <- gwrMixedDFResult[,"Intercept_L"]
@@ -696,7 +697,7 @@ shinyServer(function(input, output, session) {
     })
     
     updateSelectInput(session, inputId="paramPlot_select", label="Select Variable to Plot",
-                      choices = c("Fitted Resale Price"="yhat", variableSelect, globalvariableSelect))
+                      choices = c("Fitted Resale Price"="yhat", variableSelect, globalvariableSelect, "Intercept"))
     
     # observe({
     #   updateSelectInput(session, inputId="mixedparamPlot_select", label="Select Variable to Plot",
@@ -821,7 +822,7 @@ shinyServer(function(input, output, session) {
             selectInput(
               inputId = "mixedparamPlot_select",
               label = "Select Variable to Plot",
-              choices = c(variableSelect[!variableSelect %in% globalvariableSelect])
+              choices = c(variableSelect[!variableSelect %in% globalvariableSelect], "Intercept_L")
             ),
             column(9)
           )
@@ -954,6 +955,7 @@ shinyServer(function(input, output, session) {
     
     shapeData_reactives$plot_data_sp <- plot_data_sp
     shapeData_reactives$grd <- grd
+    shapeData_reactives$r2grd <- grd
     
     
     shapeData_reactives$value = 1
@@ -967,8 +969,11 @@ shinyServer(function(input, output, session) {
       }
       
       variableSelected <- input$paramPlot_select
-      if(variableSelected != "yhat")
-        variableSelected <- paste0(variableSelected, "_Coef")
+      if(variableSelected != "yhat"){
+        if(variableSelected != "Intercept"){
+          variableSelected <- paste0(variableSelected, "_Coef")
+        }
+      }
       
       #Interpolate the grid cells using a power value of 2 (idp=2.0)
       plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), shapeData_reactives$plot_data_sp, newdata=shapeData_reactives$grd, idp=2)
@@ -991,10 +996,10 @@ shinyServer(function(input, output, session) {
       
       param_Plot <-
         tm_shape(r.m, paste0(isoline_title, "'s Isoline Raster")) +
-        tm_raster(n=4,palette = colorPalette, title=isoline_title, style = "pretty") +
+        tm_raster(n = 4, palette = colorPalette, title=isoline_title, style = "pretty") +
         tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8) + tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6)+
         tm_shape(shapeData_reactives$plot_data_sp, paste0(isoline_title, "'s Obs Dots")) +
-        tm_dots(n=4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+        tm_dots(n = 4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
                 id='FULL_ADRESS',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
         tm_legend(legend.outside=TRUE)+
         tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE, view.legend.position = c("right", "bottom"))
@@ -1012,20 +1017,43 @@ shinyServer(function(input, output, session) {
       }
       
       variableSelected <- input$paramPlot_select
-      if(variableSelected != "yhat")
+      if(variableSelected != "yhat" & variableSelected != "Intercept"){
         variableSelected <- paste0(variableSelected, "_PV")
-      else
-        return()
-      
+      }
+      if(variableSelected == "yhat"){
+        plot_r2_idw <- gstat::idw(as.formula(paste("Local_R2", "~ 1")),
+                                  shapeData_reactives$plot_data_sp,
+                                  newdata=shapeData_reactives$r2grd,
+                                  idp=2)
+        r2       <- raster(plot_r2_idw)
+        r2.m     <- mask(r2, mpsz_sp)
+        tmap_mode("view")
+        param_Plot <-
+          tm_shape(r2.m, "Local R-Square Isoline Raster") +
+          tm_raster(palette = "Oranges", title="Local R-Square", style = "pretty", n = 5) +
+          tm_shape(mpsz, "Master Plan Subzone")+tm_borders(col = "black",lwd=0.8)+tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6)+
+          tm_shape(shapeData_reactives$plot_data_sp, "Observation Dots") +
+          tm_dots(size=0.02, col = variableSelected, palette = "Oranges", legend.show = F,
+                  id='FULL_ADDRESS',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
+          tm_legend(legend.outside=TRUE)+
+          tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE, view.legend.position = c("right", "bottom"))
+        return(tmap_leaflet(param_Plot))
+      }
+        # return()
       #Interpolate the grid cells using a power value of 2 (idp=2.0)
       plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")),
                              shapeData_reactives$plot_data_sp,
                              newdata=shapeData_reactives$grd,
                              idp=2)
-      
+      plot_r2_idw <- gstat::idw(as.formula(paste("Local_R2", "~ 1")),
+                                shapeData_reactives$plot_data_sp,
+                                newdata=shapeData_reactives$r2grd,
+                                idp=2)
       # Convert to raster object then clip to Polygon
       r       <- raster(plot_idw)
       r.m     <- mask(r, mpsz_sp)
+      r2       <- raster(plot_r2_idw)
+      r2.m     <- mask(r2, mpsz_sp)
       
       tmap_mode("view")
       
@@ -1035,10 +1063,12 @@ shinyServer(function(input, output, session) {
       
       param_Plot <-
         tm_shape(r.m, paste0(input$paramPlot_select, "'s PV Isoline Raster")) +
-        tm_raster(n=4,palette = colorPalette, title=paste0(input$paramPlot_select, "'s P-Value"), style = "pretty") +
-        tm_shape(mpsz, "MPSUBZONE")+tm_borders(col = "black",lwd=0.8)+tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6)+
+        tm_raster(palette = colorPalette, title=paste0(input$paramPlot_select, "'s P-Value"), style = "fixed", breaks = c(0, 0.001, 0.01, 0.05, 0.1, 0.2, 1)) +
+        tm_shape(r2.m, "Local R-Square Isoline Raster") +
+        tm_raster(palette = "Oranges", title="Local R-Square", style = "pretty", n = 5) +
+        tm_shape(mpsz, "Master Plan Subzone")+tm_borders(col = "black",lwd=0.8)+tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6)+
         tm_shape(shapeData_reactives$plot_data_sp, paste0(input$paramPlot_select, "'s PV Obs Dots")) +
-        tm_dots(n=4, size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
+        tm_dots(size=0.02, col = variableSelected, palette = colorPalette, legend.show = F,
                 id='FULL_ADDRESS',popup.vars=c(setNames(variableSelected, input$paramPlot_select))) +
         tm_legend(legend.outside=TRUE)+
         tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE, view.legend.position = c("right", "bottom"))
@@ -1092,7 +1122,9 @@ shinyServer(function(input, output, session) {
       }
 
       variableSelected <- input$mixedparamPlot_select
-      variableSelected <- paste0(variableSelected, "_Coef_L")
+      if(variableSelected != "Intercept_L"){
+        variableSelected <- paste0(variableSelected, "_Coef_L")
+      }
 
       #Interpolate the grid cells using a power value of 2 (idp=2.0)
       plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), mixedshapeData_reactives$mixed_plot_data_sp, newdata=mixedshapeData_reactives$mixed_grd, idp=2)

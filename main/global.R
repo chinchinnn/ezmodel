@@ -39,6 +39,7 @@ library('shinycssloaders')
 library('shinythemes')
 library('shinyjs')
 library('shinyBS')
+library('tmaptools')
 #Load Preloaded Data
 ##-------------------------------------------------------HDB RESALE DATA----------------------------------------
 hdb <- read_csv("data/HDB_DATA.csv") %>%

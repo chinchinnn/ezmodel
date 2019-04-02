@@ -329,10 +329,6 @@ shinyUI(
                             ),
                             tabPanel("Run GWR", fluid = TRUE,
                                      tags$br(),
-                                     box(width = 12,
-                                         h5("Both Non-Mixed and Mixed GWR Models will be run."),
-                                         h5(strong("Note: Both Local and Global variables will be included in the Non-Mixed GWR Formula."))
-                                     ),
                                      fluidRow(
                                        column(4,
                                               fluidRow(
@@ -397,7 +393,7 @@ shinyUI(
                                      ),
                                      
                                      tabBox(
-                                       title = "GWR Result",
+                                       # title = "GWR Result",
                                        width = 12,
                                        tabPanel(
                                          "GWR Map Result",
@@ -450,6 +446,13 @@ shinyUI(
                                                   leafletOutput("parameterMap") %>% withSpinner(type =4, color = "#099090")),
                                            column(6,
                                                   leafletOutput("significanceMap") %>% withSpinner(type =4, color = "#099090"))
+                                         ),
+                                         fluidRow(
+                                           column(1),
+                                           column(10,
+                                                  HTML("<center><strong>Explore the layers of the map on the right to look at isoline maps of local R-square/p-values</strong></center>")
+                                                  ),
+                                           column(1)
                                          )
                                            ),
                                        tabPanel("GWR Data Output", fluidRow(column(
@@ -528,6 +531,10 @@ shinyUI(
                                                   verbatimTextOutput("mixedGWROutput")
                                                 ))
                                                 )#end of last tab Panel
+                                     ),
+                                     box(width = 12,
+                                         h5("Both Non-Mixed and Mixed GWR Models will be run."),
+                                         h5(strong("Note: Both Local and Global variables will be included in the Non-Mixed GWR Formula."))
                                      )
                             )
                             
