@@ -818,7 +818,7 @@ shinyServer(function(input, output, session) {
             selectInput(
               inputId = "mixedparamPlot_select",
               label = "Select Variable to Plot",
-              choices = c()
+              choices = c(variableSelect[!variableSelect %in% globalvariableSelect])
             ),
             column(9)
           )
