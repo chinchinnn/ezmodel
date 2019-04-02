@@ -697,9 +697,11 @@ shinyServer(function(input, output, session) {
     
     updateSelectInput(session, inputId="paramPlot_select", label="Select Variable to Plot",
                       choices = c("Fitted Resale Price"="yhat", variableSelect, globalvariableSelect))
-    updateSelectInput(session, inputId="mixedparamPlot_select", label="Select Variable to Plot",
-                      choices = c(variableSelect[!variableSelect %in% globalvariableSelect]))
     
+    # observe({
+    #   updateSelectInput(session, inputId="mixedparamPlot_select", label="Select Variable to Plot",
+    #                   choices = c(variableSelect[!variableSelect %in% globalvariableSelect]))
+    # })
     gwrResultTable_reactive$value <- gwrResultTable
     enable("downloadGWRResult") # enable for download
     if (exists("gwrMixedResult")){
@@ -812,20 +814,28 @@ shinyServer(function(input, output, session) {
     
     output$noMixedWarning1 <- renderUI({
       if(exists("gwrMixedResult")){
-        fluidRow(
+        div(
+          fluidRow(
           column(
             3,
             selectInput(
               inputId = "mixedparamPlot_select",
               label = "Select Variable to Plot",
-              choices = c()
+              choices = c(variableSelect[!variableSelect %in% globalvariableSelect])
             ),
             column(9)
           )
-        )
+        ),
+        fluidRow(
+          column(6,
+                 leafletOutput("mixedparameterMap") %>% withSpinner(type =4, color = "#099090")),
+          column(6)
+          )
+    )
+        
                
       } else {
-        return(HTML("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.<br/>"))
+        return(HTML("<h4><p style='color:red'>No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.</p></h4><br/>"))
       }
     })
     
@@ -846,7 +856,7 @@ shinyServer(function(input, output, session) {
           )
         ))
       } else {
-        return(HTML("No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.<br/>"))
+        return(HTML("<h4><p style='color:red'>No Mixed GWR was run. At least one variable has to be defined as Global for Mixed GWR Model to run.</p></h4><br/>"))
       }
     })
     
@@ -1080,25 +1090,25 @@ shinyServer(function(input, output, session) {
       if (mixedshapeData_reactives$value == 0) {
         return()
       }
-      
+
       variableSelected <- input$mixedparamPlot_select
       variableSelected <- paste0(variableSelected, "_Coef_L")
-      
+
       #Interpolate the grid cells using a power value of 2 (idp=2.0)
       plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), mixedshapeData_reactives$mixed_plot_data_sp, newdata=mixedshapeData_reactives$mixed_grd, idp=2)
-      
+
       # Convert to raster object then clip to Polygon
       r       <- raster(plot_idw)
       r.m     <- mask(r, mpsz_sp)
-      
+
       tmap_mode("view")
-      
+
       ##setting up colour palette
       if (min(gwrMixedResultTable_reactive$value %>% dplyr::select(UQ(sym(variableSelected)))) < 0)
         colorPalette <- "RdBu"
       else
         colorPalette <- "Blues"
-      
+
       isoline_title <- variableSelected
       isoline_title <- paste0(input$mixedparamPlot_select, "'s Local Coefficient")
 
@@ -1111,10 +1121,10 @@ shinyServer(function(input, output, session) {
                 id='FULL_ADRESS',popup.vars=c(setNames(variableSelected, input$mixedparamPlot_select))) +
         tm_legend(legend.outside=TRUE)+
         tm_view(set.zoom.limits = c(11,14),text.size.variable = TRUE, view.legend.position = c("right", "bottom"))
-      
+
       tmap_leaflet(param_Plot)
     }, error = function(err) {
-      
+
     })
   })
   
