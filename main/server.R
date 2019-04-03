@@ -219,7 +219,7 @@ shinyServer(function(input, output, session) {
     temp <- filter(temp, FLAT_TYPE == input$flatType)
 
     if (input$sampleNum != "All"){
-      if(nrow(temp) > input$sampleNum){
+      if(nrow(temp) > as.integer(input$sampleNum)){
         result <- temp[sample(nrow(temp), input$sampleNum), ]
       }else {
         result <- temp
@@ -685,12 +685,13 @@ shinyServer(function(input, output, session) {
       year
     })
     
-    ymean <-  mean(as.numeric(unlist(gwrResultTable[,targetVar])))
-    y <- as.numeric(unlist(gwrResultTable[,targetVar]))
-    ssr <- sqrt(sum((gwrResultTable$yhat - ymean) ** 2))
-    sst <- sqrt(sum((ymean - y) ** 2))
+    # ymean <-  mean(as.numeric(unlist(gwrResultTable[,targetVar])))
+    # y <- as.numeric(unlist(gwrResultTable[,targetVar]))
+    # ssr <- sqrt(sum((gwrResultTable$yhat - ymean) ** 2))
+    # sst <- sqrt(sum((ymean - y) ** 2))
     output$showRSquare <- renderText({
-      paste0(as.character(round((ssr/sst),4)*100), "%")
+      # paste0(as.character(round((ssr/sst),4)*100), "%")
+      paste0(as.character(round(gwrModelResult$GW.diagnostic$gw.R2 * 100, 2)), "%")
     })
     output$showadjRSquare <- renderText({
       paste0(as.character(round(gwrModelResult$GW.diagnostic$gwR2.adj * 100, 2)), "%")

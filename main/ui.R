@@ -61,7 +61,7 @@ shinyUI(
                                      HTML("<ol>"),
                                      HTML("<li><strong>Upload</strong> any dataset containing point data of features in Singapore that
                                                 might be relevant to HDB resale prices. (Optional)</li>"),
-                                     HTML("<li>Alternatively, scroll down on the same page to <strong>find datasets</strong> that have been preloaded
+                                     HTML("<li>Alternatively, use the \"Choose Datasets\" section to <strong>find datasets</strong> that have been preloaded
                                                onto the server, to experiment with the app's features.</li>"),
                                      HTML("<li><strong>Define</strong> variables in the next tab based on the selectedfeatures'
                                                geographical relationship with individual resale price observation.</li>"),
@@ -192,7 +192,7 @@ shinyUI(
                                                     selectInput("toYr", "(Year)", c(2015, 2016, 2017, 2018), selected = 2018)
                                              ),
                                              column(2,
-                                                    selectInput("flatType", "Flat Type", c("1 ROOM", "2 ROOM", "3 ROOM", "4 Room", "5 Room", "EXECUTIVE", "MULTI-GENERATION"), selected = "3 ROOM")
+                                                    selectInput("flatType", "Flat Type", c("1 ROOM", "2 ROOM", "3 ROOM", "4 ROOM", "5 ROOM", "EXECUTIVE", "MULTI-GENERATION"), selected = "3 ROOM")
                                              ),
                                              column(2,
                                                     selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, "All"), selected = 300)
