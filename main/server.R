@@ -956,13 +956,27 @@ shinyServer(function(input, output, session) {
     shapeData_reactives$plot_data_sp <- plot_data_sp
     shapeData_reactives$grd <- grd
     shapeData_reactives$r2grd <- grd
-    
-    
     shapeData_reactives$value = 1
   })
   
+  # output$parameterMap <- renderLeaflet({
+  #   
+  #   variableSelected <- input$paramPlot_select
+  #   if(variableSelected != "yhat"){
+  #     if(variableSelected != "Intercept"){
+  #       variableSelected <- paste0(variableSelected, "_Coef")
+  #     }
+  #   }
+  #   plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), shapeData_reactives$plot_data_sp, newdata=shapeData_reactives$grd, idp=2)
+  #   r       <- raster(plot_idw)
+  #   r.m     <- mask(r, mpsz_sp)
+  #   View(r.m)
+  #   ##testing bivariate
+  #   test <- bivariate_choropleth(r.m, c(variableSelected, variableSelected))
+  #   View(test)
+  # })
   
-  output$parameterMap <- renderLeaflet({
+  output$parameterMap  <- renderLeaflet({
     tryCatch( {
       if (shapeData_reactives$value == 0) {
         return()
@@ -975,12 +989,22 @@ shinyServer(function(input, output, session) {
         }
       }
       
+      
       #Interpolate the grid cells using a power value of 2 (idp=2.0)
       plot_idw <- gstat::idw(as.formula(paste(variableSelected, "~ 1")), shapeData_reactives$plot_data_sp, newdata=shapeData_reactives$grd, idp=2)
       
       # Convert to raster object then clip to Polygon
       r       <- raster(plot_idw)
       r.m     <- mask(r, mpsz_sp)
+      
+      
+      # variableSelected2 <- input$paramPlot_select
+      # variableSelected3 <- paste0(variableSelected2, "_PV")
+      
+      
+      ##testing bivariate
+      # test <- bivariate_choropleth(r.m, c(variableSelected, variableSelected))
+      # View(test)
       
       tmap_mode("view")
       
@@ -1027,6 +1051,7 @@ shinyServer(function(input, output, session) {
                                   idp=2)
         r2       <- raster(plot_r2_idw)
         r2.m     <- mask(r2, mpsz_sp)
+
         tmap_mode("view")
         param_Plot <-
           tm_shape(r2.m, "Local R-Square Isoline Raster") +
