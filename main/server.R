@@ -196,8 +196,8 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$sampleNum,
                {
-                 if(input$sampleNum == "All"){
-                   output$allWarning <- renderUI(HTML("<div style = 'color:red'>Warning: Calculation using all data points will result in long processing times when running the GWR model (>10min)</div>"))
+                 if(as.numeric(input$sampleNum) > 500){
+                   output$allWarning <- renderUI(HTML("<div style = 'color:red'>Warning: Calculation using large numbers of data points will result in long processing times when running the GWR model</div>"))
                  } else {
                    output$allWarning <- NULL
                  }
@@ -570,6 +570,8 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$btnRunModel, {
     
+    # coords <- cbind(staged_data_transformed$value$X, staged_data_transformed$value$Y)
+    # dfMat <- gw.dist(dp.locat = coords)
     staging_data_spdf <- as_Spatial(staged_data_transformed$value %>% st_as_sf(coords = c("X", "Y"), crs = 3414))
     
     errorMessage <- ""
@@ -610,6 +612,7 @@ shinyServer(function(input, output, session) {
                           kernel = input$kernel_select,
                           adaptive = input$adaptivekernel,
                           longlat = FALSE
+                          # dMat = dfMat
       )
     } else {
       bandwidth <- as.numeric(input$bandwidth_field)

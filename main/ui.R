@@ -195,7 +195,7 @@ shinyUI(
                                                     selectInput("flatType", "Flat Type", c("1 ROOM", "2 ROOM", "3 ROOM", "4 ROOM", "5 ROOM", "EXECUTIVE", "MULTI-GENERATION"), selected = "3 ROOM")
                                              ),
                                              column(2,
-                                                    selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, "All"), selected = 300)
+                                                    selectInput("sampleNum", "Sample Number", c(100, 200, 300, 400, 500, 1000, 2000), selected = 300)
                                              )
                                            ),
                                            fluidRow(
