@@ -1020,7 +1020,7 @@ shinyServer(function(input, output, session) {
       
       isoline_title <- variableSelected
       if(isoline_title != "yhat")
-        isoline_title <- paste0(input$paramPlot_select, "'s Local Coefficient")
+        isoline_title <- paste0(input$paramPlot_select, "'s<br>Local Coefficient")
       
       param_Plot <-
         tm_shape(r.m, paste0(isoline_title, "'s Isoline Raster")) +
@@ -1092,7 +1092,7 @@ shinyServer(function(input, output, session) {
       
       param_Plot <-
         tm_shape(r.m, paste0(input$paramPlot_select, "'s PV Isoline Raster")) +
-        tm_raster(palette = colorPalette, title=paste0(input$paramPlot_select, "'s P-Value"), style = "fixed", breaks = c(0, 0.001, 0.01, 0.05, 0.1, 0.2, 1)) +
+        tm_raster(palette = colorPalette, title=paste0(input$paramPlot_select, "'s<br>P-Value"), style = "fixed", breaks = c(0, 0.001, 0.01, 0.05, 0.1, 0.2, 1)) +
         tm_shape(r2.m, "Local R-Square Isoline Raster") +
         tm_raster(palette = "Oranges", title="Local R-Square", style = "pretty", n = 5) +
         tm_shape(mpsz, "Master Plan Subzone")+tm_borders(col = "black",lwd=0.8)+tm_text("SUBZONE_N",size="SHAPE_Area",col="black",alpha = 0.6)+
@@ -1171,7 +1171,7 @@ shinyServer(function(input, output, session) {
         colorPalette <- "Blues"
 
       isoline_title <- variableSelected
-      isoline_title <- paste0(input$mixedparamPlot_select, "'s Local Coefficient")
+      isoline_title <- paste0(input$mixedparamPlot_select, "'s<br>Local Coefficient")
 
       param_Plot <-
         tm_shape(r.m, paste0(isoline_title, "'s Isoline Raster")) +
